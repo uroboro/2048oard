@@ -1,0 +1,10 @@
+Package: com.uroboro.2048oard
+Name: 2048oard
+Description: 2048 right in your SpringBoard
+Version: 0.0.1
+Priority: optional
+Section: Addons (Activator)
+Architecture: iphoneos-arm
+Depends: mobilesubstrate, libactivator
+Maintainer: uroboro <uroboro845@gmail.com>
+Author: uroboro <uroboro845@gmail.com>
