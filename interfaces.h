@@ -33,6 +33,7 @@
 
 @interface SBIcon : NSObject
 -(NSInteger)badgeValue;
+-(id)badgeNumberOrString;
 -(void)setBadge:(id)arg1;
 -(id)application;
 -(char)isApplicationIcon;

@@ -349,8 +349,8 @@ static NSArray *processArrayWithDirection(NSArray *array, UISwipeGestureRecogniz
 	_badgeValues = [NSMutableArray new];
 	enumerateVisibleIconsUsingBlock(^(id obj, NSUInteger idx, BOOL *stop) {
 		SBIcon *icon = (SBIcon *)obj;
-		NSInteger badgeValue = [icon badgeValue];
-		[_badgeValues addObject:@(badgeValue)];
+		id badgeNumberOrString = [icon badgeNumberOrString];
+		[_badgeValues addObject:badgeNumberOrString ? badgeNumberOrString : [NSNull null]];
 	});
 }
 
@@ -361,8 +361,8 @@ static NSArray *processArrayWithDirection(NSArray *array, UISwipeGestureRecogniz
 
 	enumerateVisibleIconsUsingBlock(^(id obj, NSUInteger idx, BOOL *stop) {
 		SBIcon *icon = (SBIcon *)obj;
-		NSNumber *badgeValue = _badgeValues[idx];
-		[icon setBadge:badgeValue?[badgeValue description]:nil];
+		id badgeNumberOrString = _badgeValues[idx];
+		[icon setBadge:(badgeNumberOrString != [NSNull null]) ? badgeNumberOrString : nil];
 	});
 
 	[_badgeValues release];
@@ -481,6 +481,8 @@ static NSArray *processArrayWithDirection(NSArray *array, UISwipeGestureRecogniz
 
 	[self restoreIconBadges];
 	[self revealIcons];
+
+	remove("/User/2048oard.txt");
 }
 
 - (BOOL)act {
@@ -541,7 +543,7 @@ static NSArray *processArrayWithDirection(NSArray *array, UISwipeGestureRecogniz
 		fprintf(fp, "%d%c", [_preview[j] intValue], (j%4==3)?'\n':' ');
 	}
 	fclose(fp);
-//	[self updateBoard];
+	[self updateBoard];
 }
 
 // LAListener protocol methods
