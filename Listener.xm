@@ -325,14 +325,15 @@ static NSArray *processArrayWithDirection(NSArray *array, UISwipeGestureRecogniz
 }
 
 + (void)load {
-	// Register our listener
-	if (LASharedActivator.isRunningInsideSpringBoard) {
-		[LASharedActivator registerListener:self forName:@"com.uroboro.2048oard"];
-	}
+	[self sharedInstance];
 }
 
 - (id)init {
 	if ([super init]) {
+		// Register our listener
+		if (LASharedActivator.isRunningInsideSpringBoard) {
+			[LASharedActivator registerListener:self forName:@"com.uroboro.2048oard"];
+		}
 	}
 	return self;
 }
