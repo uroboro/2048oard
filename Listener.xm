@@ -95,6 +95,19 @@ static NSMutableArray *arrayOf16FromCurrentIconList() {
 	return [array autorelease];
 }
 
+static NSMutableArray *allIconViews() {
+	SBIconController *ic = (SBIconController *)[%c(SBIconController) sharedInstance];
+	SBIconModel *model = ic.model;
+	NSArray *allIcons = [model leafIcons];
+
+	NSMutableArray *views = [NSMutableArray new];
+	for (id icon in allIcons) {
+		[views addObject:[[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon]];
+	}
+
+	return [views autorelease];
+}
+
 static NSArray *arraysWithDirection(NSArray *array, UISwipeGestureRecognizerDirection direction) {
 	if (!array) {
 		return nil;
@@ -313,6 +326,58 @@ static NSArray *processArrayWithDirection(NSArray *array, UISwipeGestureRecogniz
 	return composedArrayWithDirection(arrays, direction);
 }
 
+static void addRandomIconViewToArray(NSMutableArray *array) {
+	NSMutableArray *allIconsViews = allIconViews();
+
+	//ensure we don't add an object they already have
+	[allIconViews removeObjectsInArray:array];
+
+/*
+	//If they have less than 12 icons on the board,
+	//theres a chance it will place two icons instead of one
+	NSInteger iconsToPlace;
+	if (array.count > 12) {
+		iconsToPlace = 1;
+	} else {
+		//I don't know enough about random number generation to know if theres a better way to do this
+		//basically, I want it to be random with a bias towards 2
+		NSInteger chance = arc4random_uniform(100);
+		if (chance >= 35) {
+			iconsToPlace = 2;
+		} else {
+			iconsToPlace = 1;
+		}
+	}
+*/
+	NSInteger iconsToPlace = 1 + (array.count < 12 && (arc4random_uniform(100) >= 35);
+
+	for (int i = 0; i < iconsToPlace; i++) {
+		//find out how many null values they have so we can determine random range
+		//we store their indexes in an array so we don't have to find the index later
+		NSMutableArray *nullTracker = [NSMutableArray new];
+/*
+		for (id icon in array) {
+			if (icon == [NSNull null]) {
+				[nullTracker addObject:@([array indexOfObject:icon])];
+			}
+		}
+*/
+		[array enumerateObjectsUsingBlock:(^(id obj, NSUInteger idx, BOOL *stop) {
+			if (obj == [NSNull null]) {
+				[nullTracker addObject:@(idx)];
+			}
+		}];
+
+		//place a random icon at a random one of the null values
+		NSNumber *nullIndex = nullTracker[arc4random_uniform(nullTracker.count)];
+		id newIcon = [allIconViews objectAtIndex:arc4random_uniform(allIconViews.count)];
+
+		[array replaceObjectAtIndex:[nullIndex intValue] withObject:newIcon];
+
+		//ensure we don't add the same icon twice if iconsToPlace is more than one
+		[allIconViews removeObject:newIcon];
+	}
+}
 
 @implementation _2048oard
 
