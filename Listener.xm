@@ -361,8 +361,8 @@ static NSArray *processArrayWithDirection(NSArray *array, UISwipeGestureRecogniz
 
 	enumerateVisibleIconsUsingBlock(^(id obj, NSUInteger idx, BOOL *stop) {
 		SBIcon *icon = (SBIcon *)obj;
-		NSInteger badgeValue = [[_badgeValues objectAtIndex:idx] intValue];
-		[icon setBadge:badgeValue?[@(badgeValue) description]:nil];
+		NSNumber *badgeValue = _badgeValues[idx];
+		[icon setBadge:badgeValue?[badgeValue description]:nil];
 	});
 
 	[_badgeValues release];
