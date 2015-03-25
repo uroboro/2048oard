@@ -9,6 +9,7 @@
 #define indexForPosition(row, column) indexForPosition_(row, column, 4)
 
 #define ICONS_STUFF 0
+#define FILE_OUTPUT 1
 
 @interface _2048oard : NSObject <LAListener> {
 }
@@ -392,11 +393,14 @@ static NSArray *processArrayWithDirection(NSArray *array, UISwipeGestureRecogniz
 	,@0 ,@0 ,@2 ,@0
 	,@0 ,@0 ,@4 ,@2] mutableCopy];
 	NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_preview));
+
+#if FILE_OUTPUT
 	FILE *fp = fopen("/User/2048oard.txt", "w");
 	for (int j = 0; j < 16; j++) {
 		fprintf(fp, "%d%c", [_preview[j] intValue], (j%4==3)?'\n':' ');
 	}
 	fclose(fp);
+#endif /* FILE_OUTPUT */
 
 	[self saveIconBadges];
 	[self hideIcons];
@@ -482,7 +486,9 @@ static NSArray *processArrayWithDirection(NSArray *array, UISwipeGestureRecogniz
 	[self restoreIconBadges];
 	[self revealIcons];
 
+#if FILE_OUTPUT
 	remove("/User/2048oard.txt");
+#endif /* FILE_OUTPUT */
 }
 
 - (BOOL)act {
@@ -538,11 +544,14 @@ static NSArray *processArrayWithDirection(NSArray *array, UISwipeGestureRecogniz
 	_preview = [processArrayWithDirection(_preview, dir) mutableCopy];
 	NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_preview));
 	
+#if FILE_OUTPUT
 	FILE *fp = fopen("/User/2048oard.txt", "w");
 	for (int j = 0; j < 16; j++) {
 		fprintf(fp, "%d%c", [_preview[j] intValue], (j%4==3)?'\n':' ');
 	}
 	fclose(fp);
+#endif /* FILE_OUTPUT */
+
 	[self updateBoard];
 }
 
