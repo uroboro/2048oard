@@ -56,14 +56,17 @@ static CGPoint originForPosition(NSInteger row, NSInteger column) {
 	return CGPointMake(x, y);
 }
 
-static NSMutableArray *arrayOf16FromCurrentIconList() {
+static void enumerateVisibleIconsUsingBlock(void (^block)(id obj, NSUInteger idx, BOOL *stop)) {
 	SBIconController *ic = (SBIconController *)[%c(SBIconController) sharedInstance];
 	NSArray *icons = [[ic currentRootIconList] icons];
-	SBIconViewMap *iconMap = [%c(SBIconViewMap) homescreenMap];
+	[icons enumerateObjectsUsingBlock:block];
+}
+
+static NSMutableArray *arrayOf16FromCurrentIconList() {
 	NSMutableArray *array = [NSMutableArray new];
-	[icons enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+	enumerateVisibleIconsUsingBlock(^(id obj, NSUInteger idx, BOOL *stop) {
 		SBIcon *icon = (SBIcon *)obj;
-		SBIconView *iconView = [iconMap mappedIconViewForIcon:icon];
+		SBIconView *iconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
 
 		Class iconViewClass = Nil;
 		if ([icon isFolderIcon]) {
@@ -80,7 +83,8 @@ static NSMutableArray *arrayOf16FromCurrentIconList() {
 		newIconView.frame = iconView.frame;
 
 		[array addObject:newIconView];
-	}];
+	});
+
 	while ([array count] < 16) {
 		[array addObject:[NSNull null]];
 	}
@@ -309,8 +313,6 @@ static NSArray *processArrayWithDirection(NSArray *array, UISwipeGestureRecogniz
 }
 
 
-
-
 @implementation _2048oard
 
 + (id)sharedInstance {
@@ -325,7 +327,7 @@ static NSArray *processArrayWithDirection(NSArray *array, UISwipeGestureRecogniz
 + (void)load {
 	// Register our listener
 	if (LASharedActivator.isRunningInsideSpringBoard) {
-		[LASharedActivator registerListener:[self sharedInstance] forName:@"com.uroboro.2048oard"];
+		[LASharedActivator registerListener:self forName:@"com.uroboro.2048oard"];
 	}
 }
 
@@ -344,39 +346,34 @@ static NSArray *processArrayWithDirection(NSArray *array, UISwipeGestureRecogniz
 
 - (void)saveIconBadges {
 	_badgeValues = [NSMutableArray new];
-	SBIconController *ic = [%c(SBIconController) sharedInstance];
-	NSArray *icons = [[ic currentRootIconList] icons];
-	[icons enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+	enumerateVisibleIconsUsingBlock(^(id obj, NSUInteger idx, BOOL *stop) {
 		SBIcon *icon = (SBIcon *)obj;
 		NSInteger badgeValue = [icon badgeValue];
 		[_badgeValues addObject:@(badgeValue)];
-	}];
+	});
 }
 
 - (void)restoreIconBadges {
 	if (!_badgeValues) {
 		return;
 	}
-	SBIconController *ic = [%c(SBIconController) sharedInstance];
-	NSArray *icons = [[ic currentRootIconList] icons];
-	[icons enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+
+	enumerateVisibleIconsUsingBlock(^(id obj, NSUInteger idx, BOOL *stop) {
 		SBIcon *icon = (SBIcon *)obj;
 		NSInteger badgeValue = [[_badgeValues objectAtIndex:idx] intValue];
 		[icon setBadge:badgeValue?[@(badgeValue) description]:nil];
-	}];
+	});
+
 	[_badgeValues release];
 	_badgeValues = nil;
 }
 
 - (void)setIconViewsAlpha:(CGFloat)a {
-	SBIconController *ic = [%c(SBIconController) sharedInstance];
-	NSArray *icons = [[ic currentRootIconList] icons];
-	SBIconViewMap *iconMap = [%c(SBIconViewMap) homescreenMap];
-	[icons enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+	enumerateVisibleIconsUsingBlock(^(id obj, NSUInteger idx, BOOL *stop) {
 		SBIcon *icon = (SBIcon *)obj;
-		UIView *iconView = [iconMap mappedIconViewForIcon:icon];
+		UIView *iconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
 		[iconView setAlpha:a];
-	}];
+	});
 }
 
 - (void)hideIcons {
@@ -394,21 +391,26 @@ static NSArray *processArrayWithDirection(NSArray *array, UISwipeGestureRecogniz
 	,@0 ,@0 ,@2 ,@0
 	,@0 ,@0 ,@4 ,@2] mutableCopy];
 	NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_preview));
+	FILE *fp = fopen("/User/2048oard.txt", "w");
+	for (int j = 0; j < 16; j++) {
+		fprintf(fp, "%d%c", [_preview[j] intValue], (j%4==3)?'\n':' ');
+	}
+	fclose(fp);
 
 	[self saveIconBadges];
 	[self hideIcons];
 
-//	_currentLayout = arrayOf16FromCurrentIconList();
+	_currentLayout = arrayOf16FromCurrentIconList();
+	_currentLayout = nil;
 	NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_currentLayout));
 
+	CGPoint p = originForPosition(0,0);
+	printf("%f", p.x);
 #if ICONS_STUFF
-	SBIconController *ic = [%c(SBIconController) sharedInstance];
-	NSArray *icons = [[ic currentRootIconList] icons];
-	SBIconViewMap *iconMap = [%c(SBIconViewMap) homescreenMap];
-	[icons enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+	enumerateVisibleIconsUsingBlock(^(id obj, NSUInteger idx, BOOL *stop) {
 		SBIcon *icon = (SBIcon *)obj;
 		[icon setBadge:[@2 description]];
-	}];
+	});
 #endif /* ICONS_STUFF */
 	_board = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
 	[_board setWindowLevel:UIWindowLevelAlert-2];
