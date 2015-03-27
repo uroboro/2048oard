@@ -16,30 +16,36 @@
 -(void)applyTintWithValue:(NSInteger)value;
 @end
 
+#ifndef _2048IconView
 %subclass _2048IconView : SBIconView
 -(void)layoutSubviews {
 	%orig;
-
-	[self applyTintWithValue:_value];
+	[self applyTintWithValue:[self value]];
 }
 
 %new
 -(NSInteger)value {
-	return objc_getAssociatedObject(self, _cmd);
+	NSNumber *n = objc_getAssociatedObject(self, _cmd);
+	return [n intValue];
 }
 
 %new
 -(void)setValue:(NSInteger)value {
-	objc_setAssociatedObject(self, @selector(value), value, OBJC_ASSOCIATION_ASSIGN);
+	objc_setAssociatedObject(self, @selector(value), @(value), OBJC_ASSOCIATION_ASSIGN);
 	//update the view
 	[self layoutSubviews];
 }
 
 %new
 -(void)applyTintWithValue:(NSInteger)value {
+	//SBIconViews contain both the icon and the label
+	//we only want to apply to the label
+	SBIconImageView *iconImageView = [self iconImageView];
+
 	//tint on top of icon view
-	UIView *backgroundTintView = [[UIView alloc] initWithFrame:self.frame];
-	backgroundTintView.backgroundColor = [[UIColor grayColor] colorWithAlphaComponent:0.4];
+	UIView *backgroundTintView = [[UIView alloc] initWithFrame:iconImageView.frame];
+	backgroundTintView.backgroundColor = [UIColor darkGrayColor];
+	backgroundTintView.alpha = 0.4;
 
 	UILabel *valueLabel = [[UILabel alloc] initWithFrame:self.frame];
 	valueLabel.textColor = [UIColor whiteColor];
@@ -49,10 +55,11 @@
 	[backgroundTintView addSubview:valueLabel];
 	[valueLabel release];
 
-	[self addSubview:backgroundTintView];
+	[iconImageView addSubview:backgroundTintView];
 	[backgroundTintView release];
 }
 %end
+#endif /* _2048IconView */
 
 @interface _2048oard : NSObject <LAListener> {
 }
@@ -650,7 +657,7 @@ static void addRandomIconViewToArray(NSMutableArray *array) {
 
 	_preview = [processArrayWithDirection(_preview, dir) mutableCopy];
 	NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_preview));
-	
+
 #if FILE_OUTPUT
 	FILE *fp = fopen("/User/2048oard.txt", "w");
 	for (int j = 0; j < 16; j++) {

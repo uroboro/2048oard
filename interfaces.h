@@ -13,6 +13,10 @@
 -(id)currentRootIconList;
 @end
 
+@interface SBIconModel : NSObject
+-(id)leafIcons;
+@end
+
 @interface SBIconListView : UIView
 -(id)icons;
 @end
@@ -86,9 +90,13 @@
 @interface SBNewsstandApplicationIcon : SBUserInstalledApplicationIcon
 @end
 
+@interface SBIconImageView : UIImageView
+@end
+
 @interface SBIconView : UIView
 @property (nonatomic, assign) SBIcon *icon;
 -(id)initWithDefaultSize;
+-(id)iconImageView;
 @end
 
 @interface SBDownloadingIconView : SBIconView
