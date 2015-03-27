@@ -92,8 +92,8 @@ static NSString *NSArrayDescriptionInSingleLine(NSArray *a) {
 static CGPoint originForPosition(NSInteger row, NSInteger column) {
 	SBIconController *ic = (SBIconController *)[%c(SBIconController) sharedInstance];
 	NSArray *icons = [[ic currentRootIconList] icons];
-	SBIconViewMap *iconMap = [%c(SBIconViewMap) homescreenMap];
-	SBIconView *iconSample = [iconMap mappedIconViewForIcon:[icons objectAtIndex:0]];
+	SBIconView *iconSample = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icons[0]];
+
 	CGFloat iconWidth = iconSample.frame.size.width;
 	CGFloat iconHeight = iconSample.frame.size.height;
 	int offsets[4] = {0, 1, 3, 4};
@@ -376,10 +376,13 @@ static NSArray *processArrayWithDirection(NSArray *array, UISwipeGestureRecogniz
 }
 
 static void addRandomIconViewToArray(NSMutableArray *array) {
+	if (!array) {
+		return;
+	}
 	NSMutableArray *allIconsViews = allIconViews();
 
 	//ensure we don't add an object they already have
-	[allIconViews removeObjectsInArray:array];
+	[allIconsViews removeObjectsInArray:array];
 
 /*
 	//If they have less than 12 icons on the board,
@@ -398,7 +401,7 @@ static void addRandomIconViewToArray(NSMutableArray *array) {
 		}
 	}
 */
-	NSInteger iconsToPlace = 1 + (array.count < 12 && (arc4random_uniform(100) >= 35);
+	NSInteger iconsToPlace = 1 + (array.count < 12 && (arc4random_uniform(100) >= 35));
 
 	for (int i = 0; i < iconsToPlace; i++) {
 		//find out how many null values they have so we can determine random range
@@ -411,7 +414,7 @@ static void addRandomIconViewToArray(NSMutableArray *array) {
 			}
 		}
 */
-		[array enumerateObjectsUsingBlock:(^(id obj, NSUInteger idx, BOOL *stop) {
+		[array enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
 			if (obj == [NSNull null]) {
 				[nullTracker addObject:@(idx)];
 			}
@@ -419,12 +422,12 @@ static void addRandomIconViewToArray(NSMutableArray *array) {
 
 		//place a random icon at a random one of the null values
 		NSNumber *nullIndex = nullTracker[arc4random_uniform(nullTracker.count)];
-		id newIcon = [allIconViews objectAtIndex:arc4random_uniform(allIconViews.count)];
+		id newIcon = [allIconsViews objectAtIndex:arc4random_uniform(allIconsViews.count)];
 
 		[array replaceObjectAtIndex:[nullIndex intValue] withObject:newIcon];
 
 		//ensure we don't add the same icon twice if iconsToPlace is more than one
-		[allIconViews removeObject:newIcon];
+		[allIconsViews removeObject:newIcon];
 	}
 }
 

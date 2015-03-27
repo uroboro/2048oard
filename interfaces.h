@@ -5,6 +5,7 @@
 
 @interface SBIconController : NSObject
 +(id)sharedInstance;
+-(id)model;
 -(id)openFolder;
 -(char)hasOpenFolder;
 -(char)hasAnimatingFolder;
