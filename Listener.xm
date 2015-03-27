@@ -18,7 +18,6 @@
 @property (nonatomic, retain) NSMutableArray *badgeValues;
 
 // UI
-@property (nonatomic, assign) BOOL waitingToShow;
 @property (nonatomic, assign) BOOL showing;
 @property (nonatomic, retain) UIWindow *overlay;
 @property (nonatomic, retain) UIWindow *board;
