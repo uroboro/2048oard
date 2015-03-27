@@ -7,6 +7,7 @@
 
 #define indexForPosition_(row, column, columnsPerRow) (row * columnsPerRow + column)
 #define indexForPosition(row, column) indexForPosition_(row, column, 4)
+#define positionForIndex(idx) idx/4, idx%4
 
 #define ICONS_STUFF 0
 #define FILE_OUTPUT 1
@@ -559,8 +560,6 @@ static NSMutableArray *randomArrayOf16Numbers() {
 	_currentLayout = nil;
 	NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_currentLayout));
 
-	CGPoint p = originForPosition(0,0);
-	printf("%f", p.x);
 #if ICONS_STUFF
 	enumerateVisibleIconsUsingBlock(^(id obj, NSUInteger idx, BOOL *stop) {
 		SBIcon *icon = (SBIcon *)obj;
@@ -572,6 +571,24 @@ static NSMutableArray *randomArrayOf16Numbers() {
 	[_board setAutoresizesSubviews:YES];
 	[_board setAutoresizingMask:(UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight)];
 
+	_2048IconView *v = [[%c(_2048IconView) alloc] initWithDefaultSize];
+	CGPoint p = originForPosition(0, 0);
+	v.frame = CGRectMake(p.x, p.y, v.frame.size.width, v.frame.size.height);
+	[_board addSubview:v];
+	[v release];
+#if IF_I_ADD_THIS_CODE_IT_CRASHES_BUT_NOT_FROM_THIS_LINES
+	for (int idx = 0; idx < 16; idx++) {
+		_2048IconView *v = [[%c(_2048IconView) alloc] initWithDefaultSize];
+		v.value = 1 << idx;
+		CGPoint p = originForPosition(positionForIndex(idx));
+		v.frame = CGRectMake(p.x, p.y, 59, 59);
+		CMCLog(@"adding");
+		[_board addSubview:v];
+		CMCLog(@"added");
+		[v release];
+	}
+	CMCLog(@"Finished adding");
+#endif /* IF_I_ADD_THIS_CODE_IT_CRASHES_BUT_NOT_FROM_THIS_LINES */
 //	[self updateBoard];
 	[_board setHidden:NO];
 
