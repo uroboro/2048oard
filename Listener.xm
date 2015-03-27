@@ -11,6 +11,49 @@
 #define ICONS_STUFF 0
 #define FILE_OUTPUT 1
 
+@interface _2048IconView : SBIconView
+@property (nonatomic, assign) NSInteger value;
+-(void)applyTintWithValue:(NSInteger)value;
+@end
+
+%subclass _2048IconView : SBIconView
+-(void)layoutSubviews {
+	%orig;
+
+	[self applyTintWithValue:_value];
+}
+
+%new
+-(NSInteger)value {
+	return objc_getAssociatedObject(self, _cmd);
+}
+
+%new
+-(void)setValue:(NSInteger)value {
+	objc_setAssociatedObject(self, @selector(value), value, OBJC_ASSOCIATION_ASSIGN);
+	//update the view
+	[self layoutSubviews];
+}
+
+%new
+-(void)applyTintWithValue:(NSInteger)value {
+	//tint on top of icon view
+	UIView *backgroundTintView = [[UIView alloc] initWithFrame:self.frame];
+	backgroundTintView.backgroundColor = [[UIColor grayColor] colorWithAlphaComponent:0.4];
+
+	UILabel *valueLabel = [[UILabel alloc] initWithFrame:self.frame];
+	valueLabel.textColor = [UIColor whiteColor];
+	valueLabel.text = [NSString stringWithFormat:@"%d", value];
+	valueLabel.font = [UIFont systemFontOfSize:72];
+	valueLabel.textAlignment = NSTextAlignmentCenter;
+	[backgroundTintView addSubview:valueLabel];
+	[valueLabel release];
+
+	[self addSubview:backgroundTintView];
+	[backgroundTintView release];
+}
+%end
+
 @interface _2048oard : NSObject <LAListener> {
 }
 @property (nonatomic, retain) NSMutableArray *currentLayout;
