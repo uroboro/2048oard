@@ -431,6 +431,43 @@ static void addRandomIconViewToArray(NSMutableArray *array) {
 	}
 }
 
+static void addRandomValueToArray(NSMutableArray *array) {
+	if (!array) {
+		return;
+	}
+
+	NSInteger iconsToPlace = 1 + ((array.count < 12) && (arc4random_uniform(100) >= 35));
+
+	for (int i = 0; i < iconsToPlace; i++) {
+		//find out how many zero values they have so we can determine random range
+		//we store their indexes in an array so we don't have to find the index later
+		NSMutableArray *zeroTracker = [NSMutableArray new];
+
+		[array enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+			if (![obj intValue]) {
+				[zeroTracker addObject:@(idx)];
+			}
+		}];
+
+		//place a random icon at a random one of the null values
+		NSNumber *zeroIndex = zeroTracker[arc4random_uniform(zeroTracker.count)];
+		NSInteger newValue = 2 << (arc4random_uniform(4) == 3);
+
+		[array replaceObjectAtIndex:[zeroIndex intValue] withObject:@(newValue)];
+		[zeroTracker release];
+	}
+}
+
+static NSMutableArray *randomArrayOf16Numbers() {
+	NSMutableArray *array = [NSMutableArray new];
+	for (int i = 0; i < 16; i++) {
+		NSInteger j = arc4random_uniform(10);
+		NSInteger newValue = (j < 7) ? 0 : (j < 9) ? 2 : 4;
+		[array addObject:@(newValue)];
+	}
+	return array;
+}
+
 @implementation _2048oard
 
 + (id)sharedInstance {
@@ -504,11 +541,7 @@ static void addRandomIconViewToArray(NSMutableArray *array) {
 }
 
 - (void)show {
-	_preview = [@[
-	 @2 ,@2 ,@0 ,@0
-	,@0 ,@2 ,@0 ,@0
-	,@0 ,@0 ,@2 ,@0
-	,@0 ,@0 ,@4 ,@2] mutableCopy];
+	_preview = randomArrayOf16Numbers();
 	NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_preview));
 
 #if FILE_OUTPUT
@@ -660,6 +693,11 @@ static void addRandomIconViewToArray(NSMutableArray *array) {
 
 	_preview = [processArrayWithDirection(_preview, dir) mutableCopy];
 	NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_preview));
+	addRandomValueToArray(_preview);
+
+	_currentLayout = [processArrayWithDirection(_currentLayout, dir) mutableCopy];
+	NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_currentLayout));
+	addRandomIconViewToArray(_currentLayout);
 
 #if FILE_OUTPUT
 	FILE *fp = fopen("/User/2048oard.txt", "w");
