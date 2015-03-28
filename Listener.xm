@@ -57,9 +57,9 @@
 
 %new
 - (UIView *)getIconView:(int)image {
-	CGRect f = [SBIconView defaultIconImageSize];
+	CGSize s = [%c(SBIconView) defaultIconImageSize];
 
-	UIView *view = [[UIView alloc] initWithFrame:CGRectInset(CGRectMake(0, 0, f.size.width, f.size.height), -2, -2)];
+	UIView *view = [[UIView alloc] initWithFrame:CGRectInset(CGRectMake(0, 0, s.width, s.height), -2, -2)];
 	view.backgroundColor = [UIColor darkGrayColor];
 	view.layer.cornerRadius = 15;
 	view.layer.masksToBounds = YES;
@@ -126,12 +126,7 @@
 	if ((self = %orig())) {
 		SB2048Icon *i = [%c(SB2048Icon) new];
 		self.icon = i;
-
-/*		SBFolderIconBackgroundView *backgroundView = [[%c(SBFolderIconBackgroundView) alloc] initWithDefaultSize];
-		objc_setAssociatedObject(self, &templateBundle, backgroundView, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-		[self addSubview:backgroundView];
-		[backgroundView release];
-*/	}
+	}
 	return self;
 }
 
@@ -189,7 +184,7 @@ static NSString *NSArrayDescriptionInSingleLine(NSArray *a) {
 }
 
 static CGPoint originForPosition(NSInteger row, NSInteger column) {
-	CGSize s = [SBIconView defaultIconSize];
+	CGSize s = [%c(SBIconView) defaultIconSize];
 	int offsets[4] = {0, 1, 3, 4};
 	int xPadding = ([[UIApplication sharedApplication] keyWindow].frame.size.width - 4 * s.width) / 5;
 	int yPadding = 16;
@@ -700,6 +695,7 @@ static NSMutableArray *randomArrayOf16Numbers() {
 
 		SB2048IconView *v = [[%c(SB2048IconView) alloc] initWithDefaultSize];
 		((SB2048Icon *)v.icon).value = [obj intValue];
+		[v updateLabel];
 		CGPoint p = originForPosition(positionForIndex(idx));
 		v.frame = CGRectMake(p.x, p.y, 59, 59);
 		[_board addSubview:v];
