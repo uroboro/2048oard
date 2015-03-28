@@ -103,7 +103,8 @@
 +(CGSize)defaultIconImageSize;
 -(id)initWithDefaultSize;
 -(SBIconImageView *)iconImageView;
--(void)updateLabel;
+-(void)updateLabel; // < iOS 7
+-(void)_updateLabel; // >= iOS 7
 @end
 
 @interface SBDownloadingIconView : SBIconView

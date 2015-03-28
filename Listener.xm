@@ -696,7 +696,11 @@ static NSMutableArray *randomArrayOf16Numbers() {
 
 		SB2048IconView *v = [[%c(SB2048IconView) alloc] initWithDefaultSize];
 		((SB2048Icon *)v.icon).value = [obj intValue];
-		[v updateLabel];
+		if (kCFCoreFoundationVersionNumber <= 800) { // < iOS 7
+			[v updateLabel];
+		} else {
+			[v _updateLabel];
+		}
 		CGPoint p = originForPosition(positionForIndex(idx));
 		v.frame = CGRectMake(p.x, p.y, 59, 59);
 		[_board addSubview:v];
