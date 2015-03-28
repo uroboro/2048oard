@@ -23,13 +23,13 @@
 
 @end
 
-@interface SB2048Icon : SBLeafIcon
+@interface SB2048Icon : SBIcon
 @property (nonatomic, assign) NSInteger value;
 - (UIImage *)imageFromView:(UIView *)view;
 - (UIView *)getIconView:(int)image;
 @end
 
-%subclass SB2048Icon : SBLeafIcon
+%subclass SB2048Icon : SBIcon
 
 - (BOOL)is2048Icon {
 	return YES;

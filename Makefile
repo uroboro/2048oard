@@ -1,5 +1,3 @@
-export DEBUG = 1
-
 include theos/makefiles/common.mk
 
 TWEAK_NAME = 2048oard
