@@ -160,7 +160,6 @@
 }
 @property (nonatomic, retain) NSMutableArray *currentLayout;
 @property (nonatomic, retain) NSMutableArray *preview;
-@property (nonatomic, retain) NSMutableArray *badgeValues;
 
 // UI
 @property (nonatomic, assign) BOOL showing;
@@ -195,59 +194,6 @@ static CGPoint originForPosition(NSInteger row, NSInteger column) {
 
 	return CGPointMake(x, y);
 }
-
-static void enumerateVisibleIconsUsingBlock(void (^block)(id obj, NSUInteger idx, BOOL *stop)) {
-	SBIconController *ic = (SBIconController *)[%c(SBIconController) sharedInstance];
-	NSArray *icons = [[ic currentRootIconList] icons];
-	[icons enumerateObjectsUsingBlock:block];
-}
-
-#if 1 /* Targeted to be removed */
-static NSMutableArray *arrayOf16FromCurrentIconList() {
-	NSMutableArray *array = [NSMutableArray new];
-	enumerateVisibleIconsUsingBlock(^(id obj, NSUInteger idx, BOOL *stop) {
-		SBIcon *icon = (SBIcon *)obj;
-		SBIconView *iconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
-
-		Class iconViewClass = Nil;
-		if ([icon isFolderIcon]) {
-			iconViewClass = %c(SBFolderIconView);
-		} else if ([icon isNewsstandIcon]) {
-			iconViewClass = %c(SBNewsstandIconView);
-		} else if ([icon isDownloadingIcon]) {
-			iconViewClass = %c(SBDownloadingIconView);
-		} else {
-			iconViewClass = %c(SBIconView);
-		}
-		SBIconView *newIconView = [[iconViewClass alloc] initWithDefaultSize];
-		[newIconView setIcon:icon];
-		newIconView.frame = iconView.frame;
-
-		[array addObject:newIconView];
-	});
-
-	while ([array count] < 16) {
-		[array addObject:[NSNull null]];
-	}
-	while ([array count] > 16) {
-		[array removeLastObject];
-	}
-	return [array autorelease];
-}
-
-static NSMutableArray *allIconViews() {
-	SBIconController *ic = (SBIconController *)[%c(SBIconController) sharedInstance];
-	SBIconModel *model = ic.model;
-	NSArray *allIcons = [model leafIcons];
-
-	NSMutableArray *views = [NSMutableArray new];
-	for (id icon in allIcons) {
-		[views addObject:[[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon]];
-	}
-
-	return [views autorelease];
-}
-#endif /* Targeted to be removed */
 
 static NSArray *arraysWithDirection(NSArray *array, UISwipeGestureRecognizerDirection direction) {
 	if (!array) {
@@ -312,13 +258,7 @@ static NSArray *sinkIcons(NSArray *icons) {
 	int c = array.count - 1;
 	for (int j = 0; j < c; j++) {
 		for (int i = 0; i < c - j; i++) {
-			int condition;
-			if ([array[i] isKindOfClass:[NSNumber class]]) {
-				condition = [array[i] intValue] == 0;
-			} else {
-				condition = (array[i] == [NSNull null] || [((SBIconView *)array[i]).icon badgeValue] == 0);
-			}
-			if (condition) {
+			if (![array[i] intValue]) {
 				id obj = array[i];
 				array[i] = array[i+1];
 				array[i+1] = obj;
@@ -338,46 +278,22 @@ static NSArray *badgeCompressedIconsIfNeeded(NSArray *icons) {
 	NSArray *array = sinkIcons(icons);
 
 	NSMutableArray *compressedIcons = [NSMutableArray new];
-	BOOL isNSNumber = NO;
 	//we don't need to worry about the last item in the array, so skip it
-	for (int i = 0; i < array.count-1; i++) {
-		int condition;
-		if ([array[i] isKindOfClass:[NSNumber class]]) {
-			isNSNumber = YES;
-			condition = [array[i] intValue] == 0;
-		} else {
-			condition = (array[i] == [NSNull null] || [((SBIconView *)array[i]).icon badgeValue] == 0);
-		}
-		if (condition) {
+	for (int i = 0; i < array.count - 1; i++) {
+		if (![array[i] intValue]) {
 			continue;
 		}
 
-		NSInteger firstValue, aboveValue;
-		if (isNSNumber) {
-			firstValue = [array[i] intValue];
-			aboveValue = [array[i+1] intValue];
-		} else {
-			firstValue = [((SBIconView *)array[i]).icon badgeValue];
-			aboveValue = (array[i+1] == [NSNull null]) ? 0 : [((SBIconView *)array[i+1]).icon badgeValue];
-		}
+		NSInteger firstValue = [array[i] intValue];
+		NSInteger aboveValue = [array[i+1] intValue];
+
 		if (firstValue != aboveValue) {
-			if (isNSNumber) {
-				[compressedIcons addObject:@(firstValue)];
-			} else {
-				[((SBIconView *)array[i]).icon setBadge:[NSString stringWithFormat:@"%d", firstValue]];
-				[compressedIcons addObject:array[i]];
-			}
+			[compressedIcons addObject:@(firstValue)];
 			continue;
 		}
 
-		if (isNSNumber) {
-			[compressedIcons addObject:@(firstValue * 2)];
-			[compressedIcons addObject:@0];
-		} else {
-			[((SBIconView *)array[i]).icon setBadge:[NSString stringWithFormat:@"%d", firstValue * 2]];
-			[compressedIcons addObject:array[i]];
-			[compressedIcons addObject:[NSNull null]];
-		}
+		[compressedIcons addObject:@(firstValue * 2)];
+		[compressedIcons addObject:@0];
 		//we're done with both this item and the next item, so skip the next one
 		i++;
 	}
@@ -389,11 +305,7 @@ static NSArray *badgeCompressedIconsIfNeeded(NSArray *icons) {
 	NSMutableArray *result = [sinkIcons(compressedIcons) mutableCopy];
 	//ensure we always return 4 items
 	while (result.count < 4) {
-		if (isNSNumber) {
-			[result addObject:@0];
-		} else {
-			[result addObject:[NSNull null]];
-		}
+		[result addObject:@0];
 	}
 
 	return result;
@@ -467,62 +379,6 @@ static NSArray *processArrayWithDirection(NSArray *array, UISwipeGestureRecogniz
 	return composedArrayWithDirection(arrays, direction);
 }
 
-static void addRandomIconViewToArray(NSMutableArray *array) {
-	if (!array) {
-		return;
-	}
-	NSMutableArray *allIconsViews = allIconViews();
-
-	//ensure we don't add an object they already have
-	[allIconsViews removeObjectsInArray:array];
-
-/*
-	//If they have less than 12 icons on the board,
-	//theres a chance it will place two icons instead of one
-	NSInteger iconsToPlace;
-	if (array.count > 12) {
-		iconsToPlace = 1;
-	} else {
-		//I don't know enough about random number generation to know if theres a better way to do this
-		//basically, I want it to be random with a bias towards 2
-		NSInteger chance = arc4random_uniform(100);
-		if (chance >= 35) {
-			iconsToPlace = 2;
-		} else {
-			iconsToPlace = 1;
-		}
-	}
-*/
-	NSInteger iconsToPlace = 1 + (array.count < 12 && (arc4random_uniform(100) >= 35));
-
-	for (int i = 0; i < iconsToPlace; i++) {
-		//find out how many null values they have so we can determine random range
-		//we store their indexes in an array so we don't have to find the index later
-		NSMutableArray *nullTracker = [NSMutableArray new];
-/*
-		for (id icon in array) {
-			if (icon == [NSNull null]) {
-				[nullTracker addObject:@([array indexOfObject:icon])];
-			}
-		}
-*/
-		[array enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-			if (obj == [NSNull null]) {
-				[nullTracker addObject:@(idx)];
-			}
-		}];
-
-		//place a random icon at a random one of the null values
-		NSNumber *nullIndex = nullTracker[arc4random_uniform(nullTracker.count)];
-		id newIcon = [allIconsViews objectAtIndex:arc4random_uniform(allIconsViews.count)];
-
-		[array replaceObjectAtIndex:[nullIndex intValue] withObject:newIcon];
-
-		//ensure we don't add the same icon twice if iconsToPlace is more than one
-		[allIconsViews removeObject:newIcon];
-	}
-}
-
 static void addRandomValueToArray(NSMutableArray *array) {
 	if (!array) {
 		return;
@@ -592,38 +448,14 @@ static NSMutableArray *randomArrayOf16Numbers() {
 	[super dealloc];
 }
 
-#if 1 /* Targeted to be removed */
-- (void)saveIconBadges {
-	_badgeValues = [NSMutableArray new];
-	enumerateVisibleIconsUsingBlock(^(id obj, NSUInteger idx, BOOL *stop) {
-		SBIcon *icon = (SBIcon *)obj;
-		id badgeNumberOrString = [icon badgeNumberOrString];
-		[_badgeValues addObject:badgeNumberOrString ? badgeNumberOrString : [NSNull null]];
-	});
-}
-
-- (void)restoreIconBadges {
-	if (!_badgeValues) {
-		return;
-	}
-
-	enumerateVisibleIconsUsingBlock(^(id obj, NSUInteger idx, BOOL *stop) {
-		SBIcon *icon = (SBIcon *)obj;
-		id badgeNumberOrString = _badgeValues[idx];
-		[icon setBadge:(badgeNumberOrString != [NSNull null]) ? badgeNumberOrString : nil];
-	});
-
-	[_badgeValues release];
-	_badgeValues = nil;
-}
-#endif /* Targeted to be removed */
-
 - (void)setIconViewsAlpha:(CGFloat)a {
-	enumerateVisibleIconsUsingBlock(^(id obj, NSUInteger idx, BOOL *stop) {
+	SBIconController *ic = (SBIconController *)[%c(SBIconController) sharedInstance];
+	NSArray *icons = [[ic currentRootIconList] icons];
+	[icons enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
 		SBIcon *icon = (SBIcon *)obj;
 		UIView *iconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
 		[iconView setAlpha:a];
-	});
+	}];
 }
 
 - (void)hideIcons {
@@ -635,6 +467,8 @@ static NSMutableArray *randomArrayOf16Numbers() {
 }
 
 - (void)show {
+	[self hideIcons];
+
 	_preview = randomArrayOf16Numbers();
 	NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_preview));
 
@@ -645,13 +479,6 @@ static NSMutableArray *randomArrayOf16Numbers() {
 	}
 	fclose(fp);
 #endif /* FILE_OUTPUT */
-
-	[self saveIconBadges];
-	[self hideIcons];
-
-	_currentLayout = arrayOf16FromCurrentIconList();
-	_currentLayout = nil;
-	NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_currentLayout));
 
 	_board = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
 	[_board setWindowLevel:UIWindowLevelAlert-2];
@@ -725,7 +552,6 @@ static NSMutableArray *randomArrayOf16Numbers() {
 		_overlay = nil;
 	}
 
-	[self restoreIconBadges];
 	[self revealIcons];
 
 #if FILE_OUTPUT
@@ -786,10 +612,6 @@ static NSMutableArray *randomArrayOf16Numbers() {
 	_preview = [processArrayWithDirection(_preview, dir) mutableCopy];
 	NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_preview));
 	addRandomValueToArray(_preview);
-
-	_currentLayout = [processArrayWithDirection(_currentLayout, dir) mutableCopy];
-	NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_currentLayout));
-	addRandomIconViewToArray(_currentLayout);
 
 #if FILE_OUTPUT
 	FILE *fp = fopen("/User/2048oard.txt", "w");
