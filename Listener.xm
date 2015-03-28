@@ -2,6 +2,8 @@
 #include <dispatch/dispatch.h>
 #import <libactivator/libactivator.h>
 #import <UIKit/UIKit.h>
+#import <CoreGraphics/CoreGraphics.h>
+#import <QuartzCore/QuartzCore.h>
 
 #include "interfaces.h"
 
@@ -9,58 +11,154 @@
 #define indexForPosition(row, column) indexForPosition_(row, column, 4)
 #define positionForIndex(idx) idx/4, idx%4
 
-#define ICONS_STUFF 0
 #define FILE_OUTPUT 1
 
-@interface _2048IconView : SBIconView
-@property (nonatomic, assign) NSInteger value;
--(void)applyTintWithValue:(NSInteger)value;
+#if 1 /* SB2048Icon */
+
+@implementation NSObject (SB2048Icon)
+
+- (BOOL)is2048Icon {
+	return NO;
+}
+
 @end
 
-#ifndef _2048IconView
-%subclass _2048IconView : SBIconView
--(void)layoutSubviews {
-	%orig;
-	[self applyTintWithValue:[self value]];
+@interface SB2048Icon : SBLeafIcon
+@property (nonatomic, assign) NSInteger value;
+- (UIImage *)imageFromView:(UIView *)view;
+- (UIView *)getIconView:(int)image;
+@end
+
+%subclass SB2048Icon : SBLeafIcon
+
+- (BOOL)is2048Icon {
+	return YES;
 }
 
 %new
--(NSInteger)value {
+- (NSInteger)value {
 	NSNumber *n = objc_getAssociatedObject(self, _cmd);
 	return [n intValue];
 }
 
 %new
--(void)setValue:(NSInteger)value {
+- (void)setValue:(NSInteger)value {
 	objc_setAssociatedObject(self, @selector(value), @(value), OBJC_ASSOCIATION_ASSIGN);
-	//update the view
-	[self layoutSubviews];
 }
 
 %new
--(void)applyTintWithValue:(NSInteger)value {
-	//SBIconViews contain both the icon and the label
-	//we only want to apply to the label
-	SBIconImageView *iconImageView = [self iconImageView];
+- (UIImage *)imageFromView:(UIView *)view {
+	UIGraphicsBeginImageContextWithOptions(view.bounds.size, view.opaque, 0.0);
+	[view.layer renderInContext:UIGraphicsGetCurrentContext()];
+	UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
+	UIGraphicsEndImageContext();
+	return img;
+}
 
-	//tint on top of icon view
-	UIView *backgroundTintView = [[UIView alloc] initWithFrame:iconImageView.frame];
-	backgroundTintView.backgroundColor = [UIColor darkGrayColor];
-	backgroundTintView.alpha = 0.4;
+%new
+- (UIView *)getIconView:(int)image {
+	CGRect f = [SBIconView defaultIconImageSize];
 
-	UILabel *valueLabel = [[UILabel alloc] initWithFrame:self.frame];
-	valueLabel.textColor = [UIColor whiteColor];
-	valueLabel.text = [NSString stringWithFormat:@"%d", value];
-	valueLabel.font = [UIFont systemFontOfSize:72];
+	UIView *view = [[UIView alloc] initWithFrame:CGRectInset(CGRectMake(0, 0, f.size.width, f.size.height), -2, -2)];
+	view.backgroundColor = [UIColor darkGrayColor];
+	view.layer.cornerRadius = 15;
+	view.layer.masksToBounds = YES;
+//	view.alpha = 0.4;
+
+	UILabel *valueLabel = [[UILabel alloc] initWithFrame:CGRectInset(view.frame, 5, 5)];
+	valueLabel.backgroundColor = [UIColor clearColor];
+	valueLabel.textColor = [UIColor redColor];
+	valueLabel.text = [NSString stringWithFormat:@"%d", self.value];
+	valueLabel.font = [UIFont systemFontOfSize:valueLabel.frame.size.height];
 	valueLabel.textAlignment = NSTextAlignmentCenter;
-	[backgroundTintView addSubview:valueLabel];
+	[view addSubview:valueLabel];
 	[valueLabel release];
 
-	[iconImageView addSubview:backgroundTintView];
-	[backgroundTintView release];
+	return [view autorelease];
 }
+
+- (UIImage *)getIconImage:(int)image {
+	return [self imageFromView:[self getIconView:image]];
+}
+
+- (UIImage *)getGenericIconImage:(int)image {
+	return [self imageFromView:[self getIconView:image]];
+}
+
+- (UIImage *)generateIconImage:(int)image {
+	return [self imageFromView:[self getIconView:image]];
+}
+
+- (NSString *)displayName {
+	return [NSString stringWithFormat:@"%d", self.value];
+}
+
+- (BOOL)canEllipsizeLabel {
+	return NO;
+}
+
+- (NSString *)folderFallbackTitle {
+	return @"2048";
+}
+
+- (NSString *)applicationBundleID {
+	return [@"2048-" stringByAppendingString:[self displayName]];
+}
+
+- (Class)iconViewClassForLocation:(int)location {
+	return %c(SB2048IconView);
+}
+
+- (Class)iconImageViewClassForLocation:(int)location {
+	return %c(SB2048IconImageView);
+}
+
 %end
-#endif /* _2048IconView */
+#endif /* SB2048Icon */
+
+#if 1 /* SB2048IconView */
+@interface SB2048IconView : SBIconView
+@end
+
+%subclass SB2048IconView : SBIconView
+
+- (id)initWithDefaultSize {
+	if ((self = %orig())) {
+		SB2048Icon *i = [%c(SB2048Icon) new];
+		self.icon = i;
+
+/*		SBFolderIconBackgroundView *backgroundView = [[%c(SBFolderIconBackgroundView) alloc] initWithDefaultSize];
+		objc_setAssociatedObject(self, &templateBundle, backgroundView, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+		[self addSubview:backgroundView];
+		[backgroundView release];
+*/	}
+	return self;
+}
+
+- (NSString *)accessibilityValue {
+	return [self.icon displayName];
+}
+
+- (NSString *)accessibilityHint {
+	return [self.icon displayName];
+}
+
+%end
+#endif /* SB2048IconView */
+
+#if 1 /* SB2048IconImageView */
+@interface SB2048IconImageView : SBIconImageView
+@end
+
+%subclass SB2048IconImageView : SBIconImageView
+
+- (void)updateImageAnimated:(BOOL)animated {
+	%orig();
+	//modify self.layer
+}
+
+%end
+#endif /* SB2048IconImageView */
 
 @interface _2048oard : NSObject <LAListener> {
 }
@@ -91,18 +189,13 @@ static NSString *NSArrayDescriptionInSingleLine(NSArray *a) {
 }
 
 static CGPoint originForPosition(NSInteger row, NSInteger column) {
-	SBIconController *ic = (SBIconController *)[%c(SBIconController) sharedInstance];
-	NSArray *icons = [[ic currentRootIconList] icons];
-	SBIconView *iconSample = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icons[0]];
-
-	CGFloat iconWidth = iconSample.frame.size.width;
-	CGFloat iconHeight = iconSample.frame.size.height;
+	CGSize s = [SBIconView defaultIconSize];
 	int offsets[4] = {0, 1, 3, 4};
-	int xPadding = ([[UIApplication sharedApplication] keyWindow].frame.size.width - 4 * iconWidth) / 5;
+	int xPadding = ([[UIApplication sharedApplication] keyWindow].frame.size.width - 4 * s.width) / 5;
 	int yPadding = 16;
 
-	CGFloat x = xPadding + (xPadding + iconWidth) * column + offsets[column];
-	CGFloat y = yPadding + (yPadding + iconHeight) * row;
+	CGFloat x = xPadding + (xPadding + s.width) * column + offsets[column];
+	CGFloat y = yPadding + (yPadding + s.height) * row;
 
 	return CGPointMake(x, y);
 }
@@ -113,6 +206,7 @@ static void enumerateVisibleIconsUsingBlock(void (^block)(id obj, NSUInteger idx
 	[icons enumerateObjectsUsingBlock:block];
 }
 
+#if 1 /* Targeted to be removed */
 static NSMutableArray *arrayOf16FromCurrentIconList() {
 	NSMutableArray *array = [NSMutableArray new];
 	enumerateVisibleIconsUsingBlock(^(id obj, NSUInteger idx, BOOL *stop) {
@@ -157,6 +251,7 @@ static NSMutableArray *allIconViews() {
 
 	return [views autorelease];
 }
+#endif /* Targeted to be removed */
 
 static NSArray *arraysWithDirection(NSArray *array, UISwipeGestureRecognizerDirection direction) {
 	if (!array) {
@@ -501,6 +596,7 @@ static NSMutableArray *randomArrayOf16Numbers() {
 	[super dealloc];
 }
 
+#if 1 /* Targeted to be removed */
 - (void)saveIconBadges {
 	_badgeValues = [NSMutableArray new];
 	enumerateVisibleIconsUsingBlock(^(id obj, NSUInteger idx, BOOL *stop) {
@@ -524,6 +620,7 @@ static NSMutableArray *randomArrayOf16Numbers() {
 	[_badgeValues release];
 	_badgeValues = nil;
 }
+#endif /* Targeted to be removed */
 
 - (void)setIconViewsAlpha:(CGFloat)a {
 	enumerateVisibleIconsUsingBlock(^(id obj, NSUInteger idx, BOOL *stop) {
@@ -560,36 +657,12 @@ static NSMutableArray *randomArrayOf16Numbers() {
 	_currentLayout = nil;
 	NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_currentLayout));
 
-#if ICONS_STUFF
-	enumerateVisibleIconsUsingBlock(^(id obj, NSUInteger idx, BOOL *stop) {
-		SBIcon *icon = (SBIcon *)obj;
-		[icon setBadge:[@2 description]];
-	});
-#endif /* ICONS_STUFF */
 	_board = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
 	[_board setWindowLevel:UIWindowLevelAlert-2];
 	[_board setAutoresizesSubviews:YES];
 	[_board setAutoresizingMask:(UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight)];
 
-	_2048IconView *v = [[%c(_2048IconView) alloc] initWithDefaultSize];
-	CGPoint p = originForPosition(0, 0);
-	v.frame = CGRectMake(p.x, p.y, v.frame.size.width, v.frame.size.height);
-	[_board addSubview:v];
-	[v release];
-#if IF_I_ADD_THIS_CODE_IT_CRASHES_BUT_NOT_FROM_THIS_LINES
-	for (int idx = 0; idx < 16; idx++) {
-		_2048IconView *v = [[%c(_2048IconView) alloc] initWithDefaultSize];
-		v.value = 1 << idx;
-		CGPoint p = originForPosition(positionForIndex(idx));
-		v.frame = CGRectMake(p.x, p.y, 59, 59);
-		CMCLog(@"adding");
-		[_board addSubview:v];
-		CMCLog(@"added");
-		[v release];
-	}
-	CMCLog(@"Finished adding");
-#endif /* IF_I_ADD_THIS_CODE_IT_CRASHES_BUT_NOT_FROM_THIS_LINES */
-//	[self updateBoard];
+	[self updateBoard];
 	[_board setHidden:NO];
 
 	_overlay = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
@@ -616,20 +689,21 @@ static NSMutableArray *randomArrayOf16Numbers() {
 	for (UIView *v in _board.subviews) {
 		[v removeFromSuperview];
 	}
-	if (!_currentLayout) {
+
+	if (!_preview) {
 		return;
 	}
-	[_currentLayout enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-		if (obj == [NSNull null] || [obj isKindOfClass:[NSNumber class]]) {
+	[_preview enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+		if (![obj intValue]) {
 			return;
 		}
-#if ICONS_STUFF
-		SBIconView *iconView = (SBIconView *)obj;
-		CGPoint p = originForPosition(idx/4, idx%4);
-		CGSize s = iconView.frame.size;
-		iconView.frame = CGRectMake(p.x, p.y, s.width, s.height);
-		[_board addSubview:iconView];
-#endif /* ICONS_STUFF */
+
+		SB2048IconView *v = [[%c(SB2048IconView) alloc] initWithDefaultSize];
+		((SB2048Icon *)v.icon).value = [obj intValue];
+		CGPoint p = originForPosition(positionForIndex(idx));
+		v.frame = CGRectMake(p.x, p.y, 59, 59);
+		[_board addSubview:v];
+		[v release];
 	}];
 }
 

@@ -4,7 +4,7 @@ include theos/makefiles/common.mk
 
 TWEAK_NAME = 2048oard
 2048oard_FILES = Listener.xm
-2048oard_FRAMEWORKS = UIKit
+2048oard_FRAMEWORKS = UIKit CoreGraphics
 2048oard_LIBRARIES = activator
 
 include $(THEOS_MAKE_PATH)/tweak.mk

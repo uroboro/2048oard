@@ -41,6 +41,8 @@
 -(id)badgeNumberOrString;
 -(void)setBadge:(id)arg1;
 -(id)application;
+-(NSString *)displayName;
+-(id)getIconImage:(int)arg1;
 -(char)isApplicationIcon;
 -(char)isBookmarkIcon;
 -(char)isLeafIcon;
@@ -96,8 +98,10 @@
 
 @interface SBIconView : UIView
 @property (nonatomic, assign) SBIcon *icon;
++(CGSize)defaultIconSize;
++(CGSize)defaultIconImageSize;
 -(id)initWithDefaultSize;
--(id)iconImageView;
+-(SBIconImageView *)iconImageView;
 @end
 
 @interface SBDownloadingIconView : SBIconView
