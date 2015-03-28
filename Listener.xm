@@ -44,6 +44,7 @@
 %new
 - (void)setValue:(NSInteger)value {
 	objc_setAssociatedObject(self, @selector(value), @(value), OBJC_ASSOCIATION_ASSIGN);
+	[self reloadIconImagePurgingImageCache:0];
 }
 
 %new
@@ -59,7 +60,7 @@
 - (UIView *)getIconView:(int)image {
 	CGSize s = [%c(SBIconView) defaultIconImageSize];
 
-	UIView *view = [[UIView alloc] initWithFrame:CGRectInset(CGRectMake(0, 0, s.width, s.height), -2, -2)];
+	UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, s.width, s.height)];
 	view.backgroundColor = [UIColor darkGrayColor];
 	view.layer.cornerRadius = 15;
 	view.layer.masksToBounds = YES;

@@ -43,6 +43,7 @@
 -(id)application;
 -(NSString *)displayName;
 -(id)getIconImage:(int)arg1;
+-(void)reloadIconImagePurgingImageCache:(char)arg1;
 -(char)isApplicationIcon;
 -(char)isBookmarkIcon;
 -(char)isLeafIcon;
@@ -102,6 +103,7 @@
 +(CGSize)defaultIconImageSize;
 -(id)initWithDefaultSize;
 -(SBIconImageView *)iconImageView;
+-(void)updateLabel;
 @end
 
 @interface SBDownloadingIconView : SBIconView
