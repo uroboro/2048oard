@@ -610,9 +610,12 @@ static NSMutableArray *randomArrayOf16Numbers() {
 	}
 #endif
 
-	_preview = [processArrayWithDirection(_preview, dir) mutableCopy];
-	NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_preview));
-	addRandomValueToArray(_preview);
+	NSMutableArray *newValues = [processArrayWithDirection(_preview, dir) mutableCopy];
+//	NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_preview));
+	if (![newValues isEqualToArray:_preview]) {
+		addRandomValueToArray(newValues);
+	}
+	_preview = newValues;
 
 #if FILE_OUTPUT
 	FILE *fp = fopen("/User/2048oard.txt", "w");
