@@ -564,10 +564,10 @@ static NSMutableArray *randomArrayOf16Numbers() {
 	// Returns YES if alert was visible previously
 	SBIconController *ic = [%c(SBIconController) sharedInstance];
 
-	CGFloat folderTime = 0;
 	if (!_showing) {
 		_showing = YES;
 
+		CGFloat folderTime = 0;
 		if ([ic hasOpenFolder]) {
 			_folderToOpen = [ic openFolder];
 			[ic closeFolderAnimated:YES];
