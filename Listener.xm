@@ -111,6 +111,10 @@
 	return [self imageFromView:[self getIconView:image]];
 }
 
+- (UIImage *)getStandardIconImageForLocation:(int)location {
+	return [self imageFromView:[self getIconView:location]];
+}
+
 - (NSString *)displayName {
 	return [NSString stringWithFormat:@"%d", self.value];
 }
@@ -131,7 +135,52 @@
 	return %c(SB2048IconView);
 }
 
+#if 1 /* Figure out how to make the app use this class to prevent the SBUserInstalledApplicationIcon hook below */
+-(void)launch {
+	[[_2048oard sharedInstance] act];
+}
+
+- (void)launchFromViewSwitcher {
+	[[_2048oard sharedInstance] act];
+}
+
+- (void)launchFromLocation:(int)arg1 {
+	[[_2048oard sharedInstance] act];
+}
+#endif /* Figure out how to make the app use this class to prevent the SBUserInstalledApplicationIcon hook below */
+
 %end
+
+@interface SBUserInstalledApplicationIcon : SBIcon @end
+
+%hook SBUserInstalledApplicationIcon
+
+-(void)launch {
+	if ([self.applicationBundleID isEqualToString:@"com.uroboro.2048oard"]) {
+		[[_2048oard sharedInstance] act];
+	} else {
+		%orig();
+	}
+}
+
+- (void)launchFromViewSwitcher {
+	if ([self.applicationBundleID isEqualToString:@"com.uroboro.2048oard"]) {
+		[[_2048oard sharedInstance] act];
+	} else {
+		%orig();
+	}
+}
+
+- (void)launchFromLocation:(int)arg1 {
+	if ([self.applicationBundleID isEqualToString:@"com.uroboro.2048oard"]) {
+		[[_2048oard sharedInstance] act];
+	} else {
+		%orig();
+	}
+}
+
+%end
+
 #endif /* SB2048Icon */
 
 #if 1 /* SB2048IconView */
@@ -567,7 +616,6 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 	}
 
 	[_overlay makeKeyAndVisible];
-
 }
 
 - (void)updateBoard {

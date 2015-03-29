@@ -4,7 +4,18 @@
 #import <UIKit/UIKit.h>
 
 @interface SBIconListView : UIView
-- (id)icons;
+- (NSArray *)icons;
+@end
+
+@interface SBIcon : NSObject
+- (NSString *)applicationBundleID;
+- (NSInteger)badgeValue;
+- (id)badgeNumberOrString;
+- (void)setBadge:(id)arg1;
+- (NSString *)displayName;
+- (id)getIconImage:(NSInteger)arg1;
+- (void)reloadIconImagePurgingImageCache:(BOOL)arg1;
+- (void)launchFromViewSwitcher;
 @end
 
 @interface SBIconController : NSObject
@@ -18,22 +29,15 @@
 - (SBIconListView *)currentRootIconList;
 @end
 
-@interface SBIconModel : NSObject
-- (void)loadAllIcons;
-@end
-
 @interface SBIconViewMap : NSObject
 + (id)homescreenMap;
 - (id)mappedIconViewForIcon:(id)arg1;
 @end
 
-@interface SBIcon : NSObject
-- (NSInteger)badgeValue;
-- (id)badgeNumberOrString;
-- (void)setBadge:(id)arg1;
-- (NSString *)displayName;
-- (id)getIconImage:(NSInteger)arg1;
-- (void)reloadIconImagePurgingImageCache:(BOOL)arg1;
+@interface SBIconModel : NSObject
+@property (nonatomic, assign) id delegate;
+- (void)loadAllIcons;
+- (void)addIcon:(SBIcon *)icon;
 @end
 
 @interface SBIconView : UIView
