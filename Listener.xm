@@ -270,7 +270,7 @@ static NSArray *sinkIcons(NSArray *icons) {
 	return array;
 }
 
-static NSArray *badgeCompressedIconsIfNeeded(NSArray *icons) {
+static NSArray *compressedArrayIfNeeded(NSArray *icons) {
 	if (!icons) {
 		return nil;
 	}
@@ -279,32 +279,33 @@ static NSArray *badgeCompressedIconsIfNeeded(NSArray *icons) {
 	NSArray *array = sinkIcons(icons);
 
 	NSMutableArray *compressedIcons = [NSMutableArray new];
-	//we don't need to worry about the last item in the array, so skip it
-	for (int i = 0; i < array.count - 1; i++) {
-		if (![array[i] intValue]) {
+	NSInteger c = array.count;
+	for (int i = 0; i < c; i++) {
+		NSInteger currValue = [array[i] intValue];
+
+		// Skip if current value is 0
+		if (!currValue) {
 			continue;
 		}
 
-		NSInteger firstValue = [array[i] intValue];
-		NSInteger aboveValue = [array[i+1] intValue];
+		NSInteger nextValue = (i + 1 >= c) ? 0 : [array[i+1] intValue];
 
-		if (firstValue != aboveValue) {
-			[compressedIcons addObject:@(firstValue)];
-
-			//ensure the last object always gets added
-			//i begins at 0, and array.count begins at 1, so subtract 1 to make the numbers line up
-			//subtract 1 again to get the second to last object in the array
-			if (i == array.count - 2) {
-				[compressedIcons addObject:aboveValue];
-			}
-			
+		// Add current value if next is 0 or doesn't exist
+		if (!nextValue) {
+			[compressedIcons addObject:@(currValue)];
 			continue;
 		}
 
-		[compressedIcons addObject:@(firstValue * 2)];
-		[compressedIcons addObject:@0];
-		//we're done with both this item and the next item, so skip the next one
-		i++;
+		// Compress if equal
+		if (currValue == nextValue) {
+			[compressedIcons addObject:@(currValue * 2)];
+			[compressedIcons addObject:@0];
+			i++;
+			continue;
+		}
+
+		// Just add if they differ
+		[compressedIcons addObject:@(currValue)];
 	}
 
 	//sort the items
@@ -312,6 +313,7 @@ static NSArray *badgeCompressedIconsIfNeeded(NSArray *icons) {
 	//we want 4 4 0 0, not 4 0 4 0
 	//move zeroes to the end again
 	NSMutableArray *result = [sinkIcons(compressedIcons) mutableCopy];
+	[compressedIcons release];
 	//ensure we always return 4 items
 	while (result.count < 4) {
 		[result addObject:@0];
@@ -327,7 +329,7 @@ static NSArray *sinkedArraysWithDirection(NSArray *array, UISwipeGestureRecogniz
 	}
 	NSMutableArray *result = [NSMutableArray new];
 	for (NSArray *array in arrays) {
-		[result addObject:badgeCompressedIconsIfNeeded(array)];
+		[result addObject:compressedArrayIfNeeded(array)];
 	}
 	return [result autorelease];
 }
