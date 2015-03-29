@@ -61,6 +61,7 @@
 	CGSize s = [%c(SBIconView) defaultIconImageSize];
 
 	UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, s.width, s.height)];
+	view.opaque = NO;
 	view.backgroundColor = [UIColor darkGrayColor];
 	view.layer.cornerRadius = 15;
 	view.layer.masksToBounds = YES;
