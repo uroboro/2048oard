@@ -470,7 +470,8 @@ static BOOL canMakeMovements(NSArray *array) {
 
 static void showBanner(NSString *titleString, NSString *messageString, NSString *magicID) {
 	if (kCFCoreFoundationVersionNumber <= kCFCoreFoundationVersionNumber_iOS_5_0) {
-			return;
+		// Figure out what to do
+		return;
 	}
 
     BBBulletinRequest *bulletin = [%c(BBBulletinRequest) new];
