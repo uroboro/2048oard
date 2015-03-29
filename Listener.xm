@@ -15,21 +15,6 @@
 
 #if 1 /* SB2048Icon */
 
-//please dont kill me
-//this is necessary i promise
-//oh god i am going to get yelled at
-UIImage* imageFromColor(UIColor *color) {
-    CGRect rect = CGRectMake(0, 0, 1, 1);
-    UIGraphicsBeginImageContext(rect.size);
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    CGContextSetFillColorWithColor(context, [color CGColor]);
-    //  [[UIColor colorWithRed:222./255 green:227./255 blue: 229./255 alpha:1] CGColor]) ;
-    CGContextFillRect(context, rect);
-    UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    return img;
-}
-
 @implementation NSObject (SB2048Icon)
 
 - (BOOL)is2048Icon {
@@ -688,6 +673,17 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 	}];
 }
 
+-(void)spawnNewGameFromSender:(UIButton*)button {
+	UIView* gameOverScreen = [[button layer] valueForKey:@"screen"];
+	[UIView animateWithDuration:0.5 animations:^{
+		gameOverScreen.alpha = 0.0;
+	} completion:^(BOOL finished){
+		if (finished) {
+			[gameOverScreen removeFromSuperview];
+			[self spawnNewGame];
+		}
+	}];
+}
 -(void)spawnNewGame {
 	_preview = randomArrayOf16Numbers();
 	[self updateBoard];
@@ -760,23 +756,27 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 		[gameOverScreen addSubview:scoreLabel];
 
 		UIButton* tryAgainButton = [UIButton buttonWithType:UIButtonTypeCustom];
-		[tryAgainButton addTarget:self action:@selector(spawnNewGame) forControlEvents:UIControlEventTouchUpInside];
+		[tryAgainButton addTarget:self action:@selector(spawnNewGameFromSender:) forControlEvents:UIControlEventTouchUpInside];
 		[tryAgainButton setTitle:@"Try Again" forState:UIControlStateNormal];
 		[tryAgainButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-		[tryAgainButton setBackgroundImage:imageFromColor([UIColor lightGrayColor]) forState:UIControlStateNormal];
+		tryAgainButton.backgroundColor = [UIColor lightGrayColor];
 		tryAgainButton.frame = CGRectMake(0, 0, gameOverScreen.frame.size.width/3, gameOverScreen.frame.size.height/6);
 		tryAgainButton.center = CGPointMake(gameOverScreen.frame.size.width/4, gameOverScreen.frame.size.height*0.75);
 		tryAgainButton.layer.borderColor = [UIColor grayColor].CGColor;
     	tryAgainButton.layer.borderWidth = 0.5f;
     	tryAgainButton.layer.cornerRadius = 20.0f;
     	tryAgainButton.clipsToBounds = YES;
+
+    	//we use the buttons layer to pass the game over screen to that method
+    	//so it can be removed
+    	[[tryAgainButton layer] setValue:gameOverScreen forKey:@"screen"];
 		[gameOverScreen addSubview:tryAgainButton];
 
 		UIButton* quitButton = [UIButton buttonWithType:UIButtonTypeCustom];
 		[quitButton addTarget:self action:@selector(act) forControlEvents:UIControlEventTouchUpInside];
 		[quitButton setTitle:@"Exit" forState:UIControlStateNormal];
 		[quitButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-		[quitButton setBackgroundImage:imageFromColor([UIColor lightGrayColor]) forState:UIControlStateNormal];
+		quitButton.backgroundColor = [UIColor lightGrayColor];
 		quitButton.frame = CGRectMake(0, 0, gameOverScreen.frame.size.width/3, gameOverScreen.frame.size.height/6);
 		quitButton.center = CGPointMake((gameOverScreen.frame.size.width/4)*3, gameOverScreen.frame.size.height*0.75);
 		quitButton.layer.borderColor = [UIColor grayColor].CGColor;
@@ -785,7 +785,7 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
     	quitButton.clipsToBounds = YES;
 		[gameOverScreen addSubview:quitButton];
 
-		[_board addSubview:gameOverScreen];
+		[_overlay addSubview:gameOverScreen];
 
 		[UIView animateWithDuration:0.75 animations:^{
 			gameOverScreen.alpha = 1.0;
