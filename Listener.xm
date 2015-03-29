@@ -142,8 +142,6 @@
 
 - (id)initWithDefaultSize {
 	if ((self = %orig())) {
-		SB2048Icon *i = [%c(SB2048Icon) new];
-		self.icon = i;
 	}
 	return self;
 }
@@ -471,7 +469,7 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
         bulletin.primaryAttachmentType = 0;
         SBBulletinBannerItem *bannerItem = [%c(SBBulletinBannerItem) itemWithBulletin:bulletin];
         [bbc _presentBannerForItem:bannerItem];
-    } else if (kCFCoreFoundationVersionNumber < 800) { //iOS 6
+    } else if (kCFCoreFoundationVersionNumber < 800) { // iOS 6
         SBBulletinBannerItem *bannerItem = [%c(SBBulletinBannerItem) itemWithBulletin:bulletin andObserver:nil];
         [(SBBannerController *)[%c(SBBannerController) sharedInstance] _presentBannerView:[bbc newBannerViewForItem:bannerItem]];
     } else { // iOS 7-8
@@ -589,6 +587,7 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 		}
 
 		SB2048IconView *v = [[%c(SB2048IconView) alloc] initWithDefaultSize];
+		v.icon = [%c(SB2048Icon) new];
 		((SB2048Icon *)v.icon).value = [obj intValue];
 		if (kCFCoreFoundationVersionNumber <= 800) { // < iOS 7
 			[v updateLabel];
