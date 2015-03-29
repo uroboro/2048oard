@@ -71,6 +71,7 @@
 	valueLabel.textColor = [UIColor redColor];
 	valueLabel.text = [NSString stringWithFormat:@"%d", self.value];
 	valueLabel.font = [UIFont systemFontOfSize:valueLabel.frame.size.height];
+	valueLabel.adjustsFontSizeToFitWidth = YES;
 	valueLabel.textAlignment = NSTextAlignmentCenter;
 	[view addSubview:valueLabel];
 	[valueLabel release];
