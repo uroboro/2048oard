@@ -131,10 +131,6 @@
 	return %c(SB2048IconView);
 }
 
-- (Class)iconImageViewClassForLocation:(int)location {
-	return %c(SB2048IconImageView);
-}
-
 %end
 #endif /* SB2048Icon */
 
@@ -162,20 +158,6 @@
 
 %end
 #endif /* SB2048IconView */
-
-#if 1 /* SB2048IconImageView */
-@interface SB2048IconImageView : SBIconImageView
-@end
-
-%subclass SB2048IconImageView : SBIconImageView
-
-- (void)updateImageAnimated:(BOOL)animated {
-	%orig();
-	//modify self.layer
-}
-
-%end
-#endif /* SB2048IconImageView */
 
 @interface _2048oard : NSObject <LAListener> {
 }
