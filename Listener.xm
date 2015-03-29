@@ -93,6 +93,7 @@
 	valueLabel.font = [UIFont systemFontOfSize:valueLabel.frame.size.height];
 	valueLabel.adjustsFontSizeToFitWidth = YES;
 	valueLabel.textAlignment = NSTextAlignmentCenter;
+	valueLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
 	[view addSubview:valueLabel];
 	[valueLabel release];
 
