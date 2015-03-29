@@ -582,7 +582,7 @@ static BOOL canMakeMovements(NSArray *array) {
 #endif /* FILE_OUTPUT */
 
 	_board = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
-	[_board setWindowLevel:UIWindowLevelAlert-2];
+	[_board setWindowLevel:UIWindowLevelStatusBar-2];
 	[_board setAutoresizesSubviews:YES];
 	[_board setAutoresizingMask:(UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight)];
 
@@ -590,7 +590,7 @@ static BOOL canMakeMovements(NSArray *array) {
 	[_board setHidden:NO];
 
 	_overlay = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
-	[_overlay setWindowLevel:UIWindowLevelAlert-1];
+	[_overlay setWindowLevel:UIWindowLevelStatusBar-1];
 	[_overlay setAutoresizesSubviews:YES];
 	[_overlay setAutoresizingMask:(UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight)];
 #if DEBUG
@@ -631,6 +631,7 @@ static BOOL canMakeMovements(NSArray *array) {
 		}
 		v.frame = frameForPosition(positionForIndex(idx));
 		[_board addSubview:v];
+		[self popupView:v];
 		[v release];
 	}];
 }
@@ -725,12 +726,6 @@ static BOOL canMakeMovements(NSArray *array) {
 	}
 #endif
 
-	BOOL b = canMakeMovements(_preview);
-	if (!b) {
-		// Present end screen
-		showBanner(@"banner", @"Game over :(", @"com.uroboro.2048oard");
-	}
-
 	NSArray *procValues = processArrayWithDirection(_preview, dir);
 //	NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_preview));
 	[self updateBoard];
@@ -748,6 +743,13 @@ static BOOL canMakeMovements(NSArray *array) {
 		}];
 	}
 	_preview = newValues;
+	[self updateBoard];
+
+	BOOL b = canMakeMovements(_preview);
+	if (!b) {
+		// Present end screen
+		showBanner(@"banner", @"Game over :(", @"com.uroboro.2048oard");
+	}
 
 #if FILE_OUTPUT
 	FILE *fp = fopen("/User/2048oard.txt", "w");
