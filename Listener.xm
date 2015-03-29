@@ -15,6 +15,21 @@
 
 #if 1 /* SB2048Icon */
 
+//please dont kill me
+//this is necessary i promise
+//oh god i am going to get yelled at
+UIImage* imageFromColor(UIColor *color) {
+    CGRect rect = CGRectMake(0, 0, 1, 1);
+    UIGraphicsBeginImageContext(rect.size);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextSetFillColorWithColor(context, [color CGColor]);
+    //  [[UIColor colorWithRed:222./255 green:227./255 blue: 229./255 alpha:1] CGColor]) ;
+    CGContextFillRect(context, rect);
+    UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return img;
+}
+
 @implementation NSObject (SB2048Icon)
 
 - (BOOL)is2048Icon {
@@ -673,6 +688,11 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 	}];
 }
 
+-(void)spawnNewGame {
+	_preview = randomArrayOf16Numbers();
+	[self updateBoard];
+}
+
 - (void)handleSwipeGesture:(UISwipeGestureRecognizer *)gestureRecognizer {
 	UISwipeGestureRecognizerDirection dir = gestureRecognizer.direction;
 #if DEBUG
@@ -714,8 +734,62 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 	BOOL b = canMakeMovements(_preview);
 	if (!b) {
 		// Present end screen
-		NSString *msg = [NSString stringWithFormat:@"2048oard: You reached %d!", highestNumberInArray(_preview)];
-		showBanner(msg, @"But it's game over :(", @"com.uroboro.2048oard");
+
+		CGRect f = frameForPosition(3,3);
+		CGFloat h = f.origin.y + f.size.height + 16;
+		UIView* gameOverScreen = [[UIView alloc] initWithFrame:CGRectMake(0, 0, _board.frame.size.width, h)];
+		gameOverScreen.alpha = 0.0;
+		gameOverScreen.backgroundColor = [UIColor colorWithRed:255/255.0f green:219/255.0f blue:118/255.0f alpha:1.0f];
+
+		UILabel* gameOverLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, gameOverScreen.frame.size.width*0.8, gameOverScreen.frame.size.height)];
+		gameOverLabel.center = CGPointMake(gameOverScreen.center.x, (gameOverScreen.frame.size.height/16)*5);
+		gameOverLabel.text = @"Game Over!";
+		gameOverLabel.textColor = [UIColor colorWithRed:255/255.0f green:94/255.0f blue:29/255.0f alpha:1.0f];
+		gameOverLabel.font = [UIFont boldSystemFontOfSize:72];
+		gameOverLabel.adjustsFontSizeToFitWidth = YES;
+		gameOverLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
+		[gameOverScreen addSubview:gameOverLabel];
+
+		UILabel* scoreLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, gameOverScreen.frame.size.width*0.6, gameOverScreen.frame.size.height)];
+		scoreLabel.center = CGPointMake(gameOverScreen.center.x, (gameOverScreen.frame.size.height/8)*4);
+		scoreLabel.text = [NSString stringWithFormat:@"You reached %d!", highestNumberInArray(_preview)];
+		scoreLabel.textColor = [UIColor whiteColor];
+		scoreLabel.font = [UIFont systemFontOfSize:64];
+		scoreLabel.adjustsFontSizeToFitWidth = YES;
+		scoreLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
+		[gameOverScreen addSubview:scoreLabel];
+
+		UIButton* tryAgainButton = [UIButton buttonWithType:UIButtonTypeCustom];
+		[tryAgainButton addTarget:self action:@selector(spawnNewGame) forControlEvents:UIControlEventTouchUpInside];
+		[tryAgainButton setTitle:@"Try Again" forState:UIControlStateNormal];
+		[tryAgainButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+		[tryAgainButton setBackgroundImage:imageFromColor([UIColor lightGrayColor]) forState:UIControlStateNormal];
+		tryAgainButton.frame = CGRectMake(0, 0, gameOverScreen.frame.size.width/3, gameOverScreen.frame.size.height/6);
+		tryAgainButton.center = CGPointMake(gameOverScreen.frame.size.width/4, gameOverScreen.frame.size.height*0.75);
+		tryAgainButton.layer.borderColor = [UIColor grayColor].CGColor;
+    	tryAgainButton.layer.borderWidth = 0.5f;
+    	tryAgainButton.layer.cornerRadius = 20.0f;
+    	tryAgainButton.clipsToBounds = YES;
+		[gameOverScreen addSubview:tryAgainButton];
+
+		UIButton* quitButton = [UIButton buttonWithType:UIButtonTypeCustom];
+		[quitButton addTarget:self action:@selector(act) forControlEvents:UIControlEventTouchUpInside];
+		[quitButton setTitle:@"Exit" forState:UIControlStateNormal];
+		[quitButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+		[quitButton setBackgroundImage:imageFromColor([UIColor lightGrayColor]) forState:UIControlStateNormal];
+		quitButton.frame = CGRectMake(0, 0, gameOverScreen.frame.size.width/3, gameOverScreen.frame.size.height/6);
+		quitButton.center = CGPointMake((gameOverScreen.frame.size.width/4)*3, gameOverScreen.frame.size.height*0.75);
+		quitButton.layer.borderColor = [UIColor grayColor].CGColor;
+    	quitButton.layer.borderWidth = 0.5f;
+    	quitButton.layer.cornerRadius = 20.0f;
+    	quitButton.clipsToBounds = YES;
+		[gameOverScreen addSubview:quitButton];
+
+		[_board addSubview:gameOverScreen];
+
+		[UIView animateWithDuration:0.75 animations:^{
+			gameOverScreen.alpha = 1.0;
+		}];
 	}
 
 #if FILE_OUTPUT
