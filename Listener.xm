@@ -27,7 +27,7 @@
 @property (nonatomic, assign) NSInteger value;
 - (UIImage *)imageFromView:(UIView *)view;
 - (UIView *)getIconView:(int)image;
-- (UIColor *)textColorForValue:(NSInteger)value;
+- (UIColor *)colorForValue:(NSInteger)value;
 @end
 
 %subclass SB2048Icon : SBIcon
@@ -49,20 +49,19 @@
 }
 
 %new
-- (UIColor *)textColorForValue:(NSInteger)value {
-	//TODO fix these
-	//TODO add more
-	//le testing
-	NSDictionary *explicitColors = @{
-		@2:[UIColor redColor],
-		@4:[UIColor orangeColor],
-		@8:[UIColor yellowColor],
-		@16:[UIColor greenColor],
-		@32:[UIColor blueColor],
-		@64:[UIColor purpleColor]
-	};
+- (UIColor *)colorForValue:(NSInteger)value {
+	static NSMutableDictionary *notSoExplicitColors = [NSMutableDictionary new];
+	if (!notSoExplicitColors.count) {
+		CGFloat frequency = 1.0 / 16;
+		for (NSInteger i = 0; i < 16; i++) {
+				CGFloat r = 0.5 + 0.5 * cos(2 * M_PI * frequency * i + 0 * M_PI / 3);
+				CGFloat g = 0.5 + 0.5 * cos(2 * M_PI * frequency * i + 4 * M_PI / 3);
+				CGFloat b = 0.5 + 0.5 * cos(2 * M_PI * frequency * i + 2 * M_PI / 3);
+			[notSoExplicitColors setObject:[UIColor colorWithRed:r green:g blue:b alpha:1] forKey:@(2 << i)];
+		}
+	}
 
-	UIColor *c = [explicitColors objectForKey:@(value)];
+	UIColor *c = [notSoExplicitColors objectForKey:@(value)];
 	return c ? c : [UIColor whiteColor];
 }
 
@@ -81,14 +80,14 @@
 
 	UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, s.width, s.height)];
 	view.opaque = NO;
-	view.backgroundColor = [UIColor darkGrayColor];
+	view.backgroundColor = [self colorForValue:self.value];
 	view.layer.cornerRadius = 15;
 	view.layer.masksToBounds = YES;
 //	view.alpha = 0.4;
 
 	UILabel *valueLabel = [[UILabel alloc] initWithFrame:CGRectInset(view.frame, 5, 5)];
 	valueLabel.backgroundColor = [UIColor clearColor];
-	valueLabel.textColor = [self textColorForValue:self.value];
+	valueLabel.textColor = [UIColor darkGrayColor];
 	valueLabel.text = [NSString stringWithFormat:@"%d", self.value];
 	valueLabel.font = [UIFont systemFontOfSize:valueLabel.frame.size.height];
 	valueLabel.adjustsFontSizeToFitWidth = YES;
