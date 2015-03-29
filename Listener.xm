@@ -205,7 +205,7 @@ static NSString *NSArrayDescriptionInSingleLine(NSArray *a) {
 	return [NSString stringWithFormat:@"@[%@]", [a componentsJoinedByString:@","]];
 }
 
-static CGPoint originForPosition(NSInteger row, NSInteger column) {
+static CGRect frameForPosition(NSInteger row, NSInteger column) {
 	CGSize s = [%c(SBIconView) defaultIconSize];
 	int offsets[4] = {0, 1, 3, 4};
 	int xPadding = ([[UIApplication sharedApplication] keyWindow].frame.size.width - 4 * s.width) / 5;
@@ -214,7 +214,7 @@ static CGPoint originForPosition(NSInteger row, NSInteger column) {
 	CGFloat x = xPadding + (xPadding + s.width) * column + offsets[column];
 	CGFloat y = yPadding + (yPadding + s.height) * row;
 
-	return CGPointMake(x, y);
+	return CGRectMake(x, y, s.width, w.height);
 }
 
 static NSArray *arraysWithDirection(NSArray *array, UISwipeGestureRecognizerDirection direction) {
@@ -570,8 +570,7 @@ static BOOL canMakeMovements(NSArray *array) {
 		} else {
 			[v _updateLabel];
 		}
-		CGPoint p = originForPosition(positionForIndex(idx));
-		v.frame = CGRectMake(p.x, p.y, 59, 59);
+		v.frame = frameForPosition(positionForIndex(idx));
 		[_board addSubview:v];
 		[v release];
 	}];
