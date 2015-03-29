@@ -564,27 +564,28 @@ static NSMutableArray *randomArrayOf16Numbers() {
 	// Returns YES if alert was visible previously
 	SBIconController *ic = [%c(SBIconController) sharedInstance];
 
+	CGFloat folderTime = 0;
 	if (!_showing) {
 		_showing = YES;
 
 		if ([ic hasOpenFolder]) {
 			_folderToOpen = [ic openFolder];
 			[ic closeFolderAnimated:YES];
-
-			dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.55 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-				[self show];
-			});
-
-		} else {
-			[self show];
+			folderTime = 0.5;
 		}
+
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, folderTime * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+			[self show];
+		});
 	} else {
 		_showing = NO;
 		[self dismiss];
 
 		if (_folderToOpen) {
-			[ic openFolder:_folderToOpen animated:YES];
-			_folderToOpen = nil;
+			dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.2 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+				[ic openFolder:_folderToOpen animated:YES];
+				_folderToOpen = nil;
+			});
 		}
 	}
 	return _showing;
