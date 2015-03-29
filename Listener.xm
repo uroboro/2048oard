@@ -13,6 +13,26 @@
 
 #define FILE_OUTPUT 1
 
+@interface _2048oard : NSObject <LAListener> {
+}
+@property (nonatomic, retain) NSMutableArray *currentLayout;
+@property (nonatomic, retain) NSMutableArray *preview;
+
+// UI
+@property (nonatomic, assign) BOOL showing;
+@property (nonatomic, retain) UIWindow *overlay;
+@property (nonatomic, retain) UIWindow *board;
+
+@property (nonatomic, assign) id folderToOpen;
+
++ (id)sharedInstance;
+
+- (void)show;
+- (void)dismiss;
+- (BOOL)act;
+
+@end
+
 #if 1 /* SB2048Icon */
 
 @implementation NSObject (SB2048Icon)
@@ -205,26 +225,6 @@
 
 %end
 #endif /* SB2048IconView */
-
-@interface _2048oard : NSObject <LAListener> {
-}
-@property (nonatomic, retain) NSMutableArray *currentLayout;
-@property (nonatomic, retain) NSMutableArray *preview;
-
-// UI
-@property (nonatomic, assign) BOOL showing;
-@property (nonatomic, retain) UIWindow *overlay;
-@property (nonatomic, retain) UIWindow *board;
-
-@property (nonatomic, assign) id folderToOpen;
-
-+ (id)sharedInstance;
-
-- (void)show;
-- (void)dismiss;
-- (BOOL)act;
-
-@end
 
 static NSString *NSArrayDescriptionInSingleLine(NSArray *a) {
 	if (!a) {
