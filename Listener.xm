@@ -455,7 +455,7 @@ static BOOL canMakeMovements(NSArray *array) {
 	NSArray *aDown = processArrayWithDirection(array, UISwipeGestureRecognizerDirectionDown);
 	BOOL c0 = [aRight isEqualToArray:aLeft];
 	BOOL c1 = [aUp isEqualToArray:aDown];
-	return (c0 && c1) ? [aRight isEqualToArray:aUp] : NO;
+	return !((c0 && c1) ? [aRight isEqualToArray:aUp] : NO);
 }
 
 @implementation _2048oard
@@ -650,6 +650,11 @@ static BOOL canMakeMovements(NSArray *array) {
 	break;
 	}
 #endif
+
+	BOOL b = canMakeMovements(_preview);
+	if (!b) {
+		// Present end screen
+	}
 
 	NSMutableArray *newValues = [processArrayWithDirection(_preview, dir) mutableCopy];
 //	NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_preview));
