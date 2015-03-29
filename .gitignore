@@ -33,3 +33,4 @@ theos
 packages
 obj
 _
+*.deb

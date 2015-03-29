@@ -290,6 +290,14 @@ static NSArray *badgeCompressedIconsIfNeeded(NSArray *icons) {
 
 		if (firstValue != aboveValue) {
 			[compressedIcons addObject:@(firstValue)];
+
+			//ensure the last object always gets added
+			//i begins at 0, and array.count begins at 1, so subtract 1 to make the numbers line up
+			//subtract 1 again to get the second to last object in the array
+			if (i == array.count - 2) {
+				[compressedIcons addObject:aboveValue];
+			}
+			
 			continue;
 		}
 
