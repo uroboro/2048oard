@@ -31,6 +31,26 @@
 
 %subclass SB2048Icon : SBIcon
 
+%new
++(UIColor*)textColorForValue:(NSInteger)value {
+	//TODO fix these
+	//TODO add more
+	//le testing
+	NSDictionary* explicitColors = @{
+		@2:[UIColor redColor],
+		@4:[UIColor orangeColor],
+		@8:[UIColor yellowColor],
+		@16:[UIColor greenColor],
+		@32:[UIColor blueColor],
+		@64:[UIColor purpleColor]
+	};
+
+	if ([explicitColors objectForKey:[NSNumber numberWithInteger:value]]) {
+		return [explicitColors objectForKey:[NSNumber numberWithInteger:value]];
+	}
+	return [UIColor whiteColor];
+}
+
 - (BOOL)is2048Icon {
 	return YES;
 }
@@ -69,7 +89,7 @@
 
 	UILabel *valueLabel = [[UILabel alloc] initWithFrame:CGRectInset(view.frame, 5, 5)];
 	valueLabel.backgroundColor = [UIColor clearColor];
-	valueLabel.textColor = [UIColor redColor];
+	valueLabel.textColor = [[self class] textColorForValue:self.value];
 	valueLabel.text = [NSString stringWithFormat:@"%d", self.value];
 	valueLabel.font = [UIFont systemFontOfSize:valueLabel.frame.size.height];
 	valueLabel.adjustsFontSizeToFitWidth = YES;
