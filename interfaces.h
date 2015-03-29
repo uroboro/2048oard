@@ -116,4 +116,32 @@
 @interface SBNewsstandIconView : SBFolderIconView
 @end
 
+@interface BBBulletinRequest : NSObject {}
+@property (nonatomic, copy) NSString *bulletinID;
+@property (nonatomic, copy) NSString *sectionID;
+@property (nonatomic, copy) NSString *recordID;
+@property (nonatomic, copy) NSString *publisherBulletinID;
+@property (nonatomic, copy) NSString *title;
+@property (nonatomic, copy) NSString *subtitle;
+@property (nonatomic, copy) NSString *message;
+@property (nonatomic, retain) NSDate *date;
+@property (nonatomic, assign) int primaryAttachmentType;
+@end
+
+@interface SBBulletinBannerController : NSObject
++ (id)sharedInstance;
+- (void)_presentBannerForItem:(id)arg1; // <= kCFCoreFoundationVersionNumber_iOS_5_1
+- (id)newBannerViewForItem:(id)arg1; // > kCFCoreFoundationVersionNumber_iOS_5_1
+@end
+
+@interface SBBulletinBannerItem : NSObject
++ (id)itemWithBulletin:(id)arg1; // <= kCFCoreFoundationVersionNumber_iOS_5_1
++ (id)itemWithBulletin:(id)arg1 andObserver:(id)arg2; // > kCFCoreFoundationVersionNumber_iOS_5_1
+@end
+
+@interface SBBannerController : NSObject
++ (id)sharedInstance;
+- (void)_presentBannerView:(id)arg1; // > kCFCoreFoundationVersionNumber_iOS_5_1
+@end
+
 #endif /* INTERFACES_H */
