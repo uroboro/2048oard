@@ -132,6 +132,7 @@
 + (id)sharedInstance;
 - (void)_presentBannerForItem:(id)arg1; // <= kCFCoreFoundationVersionNumber_iOS_5_1
 - (id)newBannerViewForItem:(id)arg1; // > kCFCoreFoundationVersionNumber_iOS_5_1
+- (void)observer:(id)arg1 addBulletin:(BBBulletinRequest *)arg2 forFeed:(NSUInteger)arg3;
 @end
 
 @interface SBBulletinBannerItem : NSObject

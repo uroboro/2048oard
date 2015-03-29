@@ -469,7 +469,7 @@ static BOOL canMakeMovements(NSArray *array) {
 }
 
 static void showBanner(NSString *titleString, NSString *messageString, NSString *magicID) {
-	if (kCFCoreFoundationVersionNumber <= kCFCoreFoundationVersionNumber_iOS_5_0) {
+	if (kCFCoreFoundationVersionNumber < 600) { // iOS 2-4
 		// Figure out what to do
 		return;
 	}
@@ -485,14 +485,14 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 //  bulletin.lastInterruptDate = [NSDate date];
 
     SBBulletinBannerController *bbc = (SBBulletinBannerController *)[%c(SBBulletinBannerController) sharedInstance];
-    if (kCFCoreFoundationVersionNumber <= kCFCoreFoundationVersionNumber_iOS_5_1) {
+    if (kCFCoreFoundationVersionNumber < 700) { // iOS 5
         bulletin.primaryAttachmentType = 0;
         SBBulletinBannerItem *bannerItem = [%c(SBBulletinBannerItem) itemWithBulletin:bulletin];
         [bbc _presentBannerForItem:bannerItem];
-    } else if (kCFCoreFoundationVersionNumber < kCFCoreFoundationVersionNumber_iOS_7_0) {
+    } else if (kCFCoreFoundationVersionNumber < 800) { //iOS 6
         SBBulletinBannerItem *bannerItem = [%c(SBBulletinBannerItem) itemWithBulletin:bulletin andObserver:nil];
         [(SBBannerController *)[%c(SBBannerController) sharedInstance] _presentBannerView:[bbc newBannerViewForItem:bannerItem]];
-    } else {
+    } else { // iOS 7-8
 		[bbc observer:nil addBulletin:bulletin forFeed:2];
 	}
 
