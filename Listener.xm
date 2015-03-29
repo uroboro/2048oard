@@ -631,6 +631,21 @@ static BOOL canMakeMovements(NSArray *array) {
 	return _showing;
 }
 
+- (void)popupView:(UIView *)view {
+	view.transform = CGAffineTransformScale(CGAffineTransformIdentity, 0.001, 0.001);
+	[UIView animateWithDuration:0.3/1.5 animations:^{
+		view.transform = CGAffineTransformScale(CGAffineTransformIdentity, 1.1, 1.1);
+	} completion:^(BOOL finished) {
+		[UIView animateWithDuration:0.3/2 animations:^{
+			view.transform = CGAffineTransformScale(CGAffineTransformIdentity, 0.9, 0.9);
+		} completion:^(BOOL finished) {
+			[UIView animateWithDuration:0.3/2 animations:^{
+				view.transform = CGAffineTransformIdentity;
+			}];
+		}];
+	}];
+}
+
 - (void)handleSwipeGesture:(UISwipeGestureRecognizer *)gestureRecognizer {
 	UISwipeGestureRecognizerDirection dir = gestureRecognizer.direction;
 #if DEBUG
@@ -655,10 +670,21 @@ static BOOL canMakeMovements(NSArray *array) {
 		// Present end screen
 	}
 
-	NSMutableArray *newValues = [processArrayWithDirection(_preview, dir) mutableCopy];
+	NSArray *procValues = processArrayWithDirection(_preview, dir);
 //	NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_preview));
+	[self updateBoard];
+
+	NSMutableArray *newValues = [procValues mutableCopy];
 	if (![newValues isEqualToArray:_preview]) {
 		addRandomValueToArray(newValues);
+		[self updateBoard];
+		[newValues enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+			if (![obj isEqual:_preview[idx]]) {
+				//this is not the correct index for the subview, gotta recalculate
+//				[self popupView:_board.subviews[idx]];
+				[self popupView:_board.subviews[0]];
+			}
+		}];
 	}
 	_preview = newValues;
 
@@ -669,8 +695,6 @@ static BOOL canMakeMovements(NSArray *array) {
 	}
 	fclose(fp);
 #endif /* FILE_OUTPUT */
-
-	[self updateBoard];
 }
 
 // LAListener protocol methods
