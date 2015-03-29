@@ -13,6 +13,65 @@
 
 #define FILE_OUTPUT 1
 
+#if 1 /* showBanner */
+@interface BBBulletinRequest : NSObject {}
+@property (nonatomic, copy) NSString *bulletinID;
+@property (nonatomic, copy) NSString *sectionID;
+@property (nonatomic, copy) NSString *recordID;
+@property (nonatomic, copy) NSString *publisherBulletinID;
+@property (nonatomic, copy) NSString *title;
+@property (nonatomic, copy) NSString *subtitle;
+@property (nonatomic, copy) NSString *message;
+@property (nonatomic, retain) NSDate *date;
+@property (nonatomic, assign) int primaryAttachmentType;
+@end
+
+@interface SBBulletinBannerController : NSObject
++ (id)sharedInstance;
+- (void)_presentBannerForItem:(id)arg1; // <= kCFCoreFoundationVersionNumber_iOS_5_1
+- (id)newBannerViewForItem:(id)arg1; // > kCFCoreFoundationVersionNumber_iOS_5_1
+@end
+
+@interface SBBulletinBannerItem : NSObject
++ (id)itemWithBulletin:(id)arg1; // <= kCFCoreFoundationVersionNumber_iOS_5_1
++ (id)itemWithBulletin:(id)arg1 andObserver:(id)arg2; // > kCFCoreFoundationVersionNumber_iOS_5_1
+@end
+
+@interface SBBannerController : NSObject
++ (id)sharedInstance;
+- (void)_presentBannerView:(id)arg1; // > kCFCoreFoundationVersionNumber_iOS_5_1
+@end
+
+static void showBanner(NSString *titleString, NSString *messageString, NSString *magicID) {
+	if (kCFCoreFoundationVersionNumber <= kCFCoreFoundationVersionNumber_iOS_5_0) {
+			return;
+	}
+
+    BBBulletinRequest *bulletin = [%c(BBBulletinRequest) new];
+    bulletin.sectionID = magicID;
+    bulletin.bulletinID = magicID;
+    bulletin.publisherBulletinID = magicID;
+    bulletin.recordID = magicID;
+    bulletin.title = titleString;
+    bulletin.message = messageString;
+    bulletin.date = [NSDate date];
+//  bulletin.lastInterruptDate = [NSDate date];
+
+    SBBulletinBannerController *bbc = (SBBulletinBannerController *)[%c(SBBulletinBannerController) sharedInstance];
+    if (kCFCoreFoundationVersionNumber <= kCFCoreFoundationVersionNumber_iOS_5_1) {
+        bulletin.primaryAttachmentType = 0;
+        SBBulletinBannerItem *bannerItem = [%c(SBBulletinBannerItem) itemWithBulletin:bulletin];
+        [bbc _presentBannerForItem:bannerItem];
+    } else if (kCFCoreFoundationVersionNumber > kCFCoreFoundationVersionNumber_iOS_5_1) {
+        SBBulletinBannerItem *bannerItem = [%c(SBBulletinBannerItem) itemWithBulletin:bulletin andObserver:nil];
+        [(SBBannerController *)[%c(SBBannerController) sharedInstance] _presentBannerView:[bbc newBannerViewForItem:bannerItem]];
+    }
+    [bulletin release];
+
+    return;
+}
+#endif /* showBanner */
+
 #if 1 /* SB2048Icon */
 
 @implementation NSObject (SB2048Icon)
@@ -669,6 +728,7 @@ static BOOL canMakeMovements(NSArray *array) {
 	BOOL b = canMakeMovements(_preview);
 	if (!b) {
 		// Present end screen
+		showBanner(@"banner", @"Game over :(", @"com.uroboro.2048oard");
 	}
 
 	NSArray *procValues = processArrayWithDirection(_preview, dir);
