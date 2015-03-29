@@ -27,29 +27,10 @@
 @property (nonatomic, assign) NSInteger value;
 - (UIImage *)imageFromView:(UIView *)view;
 - (UIView *)getIconView:(int)image;
+- (UIColor *)textColorForValue:(NSInteger)value;
 @end
 
 %subclass SB2048Icon : SBIcon
-
-%new
-+(UIColor*)textColorForValue:(NSInteger)value {
-	//TODO fix these
-	//TODO add more
-	//le testing
-	NSDictionary* explicitColors = @{
-		@2:[UIColor redColor],
-		@4:[UIColor orangeColor],
-		@8:[UIColor yellowColor],
-		@16:[UIColor greenColor],
-		@32:[UIColor blueColor],
-		@64:[UIColor purpleColor]
-	};
-
-	if ([explicitColors objectForKey:[NSNumber numberWithInteger:value]]) {
-		return [explicitColors objectForKey:[NSNumber numberWithInteger:value]];
-	}
-	return [UIColor whiteColor];
-}
 
 - (BOOL)is2048Icon {
 	return YES;
@@ -65,6 +46,24 @@
 - (void)setValue:(NSInteger)value {
 	objc_setAssociatedObject(self, @selector(value), @(value), OBJC_ASSOCIATION_ASSIGN);
 	[self reloadIconImagePurgingImageCache:0];
+}
+
+%new
+- (UIColor *)textColorForValue:(NSInteger)value {
+	//TODO fix these
+	//TODO add more
+	//le testing
+	NSDictionary *explicitColors = @{
+		@2:[UIColor redColor],
+		@4:[UIColor orangeColor],
+		@8:[UIColor yellowColor],
+		@16:[UIColor greenColor],
+		@32:[UIColor blueColor],
+		@64:[UIColor purpleColor]
+	};
+
+	UIColor *c = [explicitColors objectForKey:@(value)];
+	return c ? c : [UIColor whiteColor];
 }
 
 %new
@@ -89,7 +88,7 @@
 
 	UILabel *valueLabel = [[UILabel alloc] initWithFrame:CGRectInset(view.frame, 5, 5)];
 	valueLabel.backgroundColor = [UIColor clearColor];
-	valueLabel.textColor = [[self class] textColorForValue:self.value];
+	valueLabel.textColor = [self textColorForValue:self.value];
 	valueLabel.text = [NSString stringWithFormat:@"%d", self.value];
 	valueLabel.font = [UIFont systemFontOfSize:valueLabel.frame.size.height];
 	valueLabel.adjustsFontSizeToFitWidth = YES;
@@ -214,7 +213,7 @@ static CGRect frameForPosition(NSInteger row, NSInteger column) {
 	CGFloat x = xPadding + (xPadding + s.width) * column + offsets[column];
 	CGFloat y = yPadding + (yPadding + s.height) * row;
 
-	return CGRectMake(x, y, s.width, w.height);
+	return CGRectMake(x, y, s.width, s.height);
 }
 
 static NSArray *arraysWithDirection(NSArray *array, UISwipeGestureRecognizerDirection direction) {
