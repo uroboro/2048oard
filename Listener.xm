@@ -448,6 +448,17 @@ static NSMutableArray *randomArrayOf16Numbers() {
 	return array;
 }
 
+static NSInteger highestNumberInArray(NSArray *array) {
+	__block NSInteger i = 0;
+	[array enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+		NSInteger value = [(NSNumber *)obj intValue];
+		if (value > i) {
+			i = value;
+		}
+	}];
+	return i;
+}
+
 static BOOL canMakeMovements(NSArray *array) {
 	NSArray *aRight = processArrayWithDirection(array, UISwipeGestureRecognizerDirectionRight);
 	NSArray *aLeft = processArrayWithDirection(array, UISwipeGestureRecognizerDirectionLeft);
@@ -718,7 +729,8 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 	BOOL b = canMakeMovements(_preview);
 	if (!b) {
 		// Present end screen
-		showBanner(@"banner", @"Game over :(", @"com.uroboro.2048oard");
+		NSString *msg = [NSString stringWithFormat:@"2048oard: You reached %d!", highestNumberInArray(_preview)];
+		showBanner(msg, @"But it's game over :(", @"com.uroboro.2048oard");
 	}
 
 #if FILE_OUTPUT
