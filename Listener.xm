@@ -428,6 +428,16 @@ static NSMutableArray *randomArrayOf16Numbers() {
 	return array;
 }
 
+static BOOL canMakeMovements(NSArray *array) {
+	NSArray *aRight = processArrayWithDirection(array, UISwipeGestureRecognizerDirectionRight);
+	NSArray *aLeft = processArrayWithDirection(array, UISwipeGestureRecognizerDirectionLeft);
+	NSArray *aUp = processArrayWithDirection(array, UISwipeGestureRecognizerDirectionUp);
+	NSArray *aDown = processArrayWithDirection(array, UISwipeGestureRecognizerDirectionDown);
+	BOOL c0 = [aRight isEqualToArray:aLeft];
+	BOOL c1 = [aUp isEqualToArray:aDown];
+	return (c0 && c1) ? [aRight isEqualToArray:aUp] : NO;
+}
+
 @implementation _2048oard
 
 + (id)sharedInstance {
