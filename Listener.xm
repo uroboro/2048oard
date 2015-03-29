@@ -568,7 +568,9 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 	[icons enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
 		SBIcon *icon = (SBIcon *)obj;
 		UIView *iconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
-		[iconView setAlpha:a];
+		[UIView animateWithDuration:0.2 animations:^{
+			[iconView setAlpha:a];
+		}];
 	}];
 }
 
@@ -581,8 +583,6 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 }
 
 - (void)show {
-	[self hideIcons];
-
 	_preview = randomArrayOf16Numbers();
 	NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_preview));
 
@@ -666,8 +666,6 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 		_overlay = nil;
 	}
 
-	[self revealIcons];
-
 #if FILE_OUTPUT
 	remove("/User/2048oard.txt");
 #endif /* FILE_OUTPUT */
@@ -689,11 +687,13 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 		}
 
 		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, folderTime * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+			[self hideIcons];
 			[self show];
 		});
 	} else {
 		_showing = NO;
 		[self dismiss];
+		[self revealIcons];
 
 		if (_folderToOpen) {
 			dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.2 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
@@ -747,6 +747,7 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 	if (![newValues isEqualToArray:_preview]) {
 		addRandomValueToArray(newValues);
 		[self updateBoard];
+/* Placeholder for popup animation for inserted icons (instead of popping up all of them)
 		[newValues enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
 			if (![obj isEqual:_preview[idx]]) {
 				//this is not the correct index for the subview, gotta recalculate
@@ -754,6 +755,7 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 				[self popupView:_board.subviews[0]];
 			}
 		}];
+*/
 	}
 	_preview = newValues;
 	[self updateBoard];
