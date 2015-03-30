@@ -531,6 +531,13 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
     return;
 }
 
+static LAActivator *_LASharedActivator;
+
+%ctor {
+	dlopen("/usr/lib/libactivator.dylib", RTLD_LAZY);
+	_LASharedActivator = [objc_getClass("LASharedActivator") sharedInstance];
+}
+
 @implementation _2048oard
 
 + (id)sharedInstance {
@@ -549,16 +556,16 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 - (id)init {
 	if ([super init]) {
 		// Register our listener
-		if (LASharedActivator.isRunningInsideSpringBoard) {
-			[LASharedActivator registerListener:self forName:bundleID];
+		if (_LASharedActivator && _LASharedActivator.isRunningInsideSpringBoard) {
+			[_LASharedActivator registerListener:self forName:bundleID];
 		}
 	}
 	return self;
 }
 
 - (void)dealloc {
-	if (LASharedActivator.runningInsideSpringBoard) {
-		[LASharedActivator unregisterListenerWithName:bundleID];
+	if (_LASharedActivator && _LASharedActivator.runningInsideSpringBoard) {
+		[_LASharedActivator unregisterListenerWithName:bundleID];
 	}
 	[super dealloc];
 }
