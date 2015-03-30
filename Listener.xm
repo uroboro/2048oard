@@ -11,6 +11,8 @@
 #define indexForPosition(row, column) indexForPosition_(row, column, 4)
 #define positionForIndex(idx) idx/4, idx%4
 
+static NSString *bundleID = @"com.uroboro.2048oard";
+
 #define FILE_OUTPUT 1
 
 @interface _2048oard : NSObject <LAListener> {
@@ -175,7 +177,7 @@
 %hook SBUserInstalledApplicationIcon
 
 -(void)launch {
-	if ([self.applicationBundleID isEqualToString:@"com.uroboro.2048oard"]) {
+	if ([self.applicationBundleID isEqualToString:bundleID]) {
 		[[_2048oard sharedInstance] act];
 	} else {
 		%orig();
@@ -183,7 +185,7 @@
 }
 
 - (void)launchFromViewSwitcher {
-	if ([self.applicationBundleID isEqualToString:@"com.uroboro.2048oard"]) {
+	if ([self.applicationBundleID isEqualToString:bundleID]) {
 		[[_2048oard sharedInstance] act];
 	} else {
 		%orig();
@@ -191,7 +193,7 @@
 }
 
 - (void)launchFromLocation:(int)arg1 {
-	if ([self.applicationBundleID isEqualToString:@"com.uroboro.2048oard"]) {
+	if ([self.applicationBundleID isEqualToString:bundleID]) {
 		[[_2048oard sharedInstance] act];
 	} else {
 		%orig();
@@ -548,7 +550,7 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 	if ([super init]) {
 		// Register our listener
 		if (LASharedActivator.isRunningInsideSpringBoard) {
-			[LASharedActivator registerListener:self forName:@"com.uroboro.2048oard"];
+			[LASharedActivator registerListener:self forName:bundleID];
 		}
 	}
 	return self;
@@ -556,7 +558,7 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 
 - (void)dealloc {
 	if (LASharedActivator.runningInsideSpringBoard) {
-		[LASharedActivator unregisterListenerWithName:@"com.uroboro.2048oard"];
+		[LASharedActivator unregisterListenerWithName:bundleID];
 	}
 	[super dealloc];
 }
@@ -840,7 +842,7 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 	BOOL b = canMakeMovements(_preview);
 	if (!b) {
 		// Present end screen
-		if (0) showBanner(@"banner", @"Game over :(", @"com.uroboro.2048oard");
+		if (0) showBanner(@"banner", @"Game over :(", bundleID);
 
 		[self showGameOverScreen];
 	}
