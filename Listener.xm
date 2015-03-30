@@ -97,7 +97,7 @@ static NSString *bundleID = @"com.uroboro.2048oard";
 - (UIView *)getIconView:(int)image {
 	CGSize s = [%c(SBIconView) defaultIconImageSize];
 
-	UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, s.width, s.height)];
+	UIView *view = [[UIView alloc] initWithFrame:CGRectInset(CGRectMake(0, 0, s.width, s.height), 2, 2)];
 	view.opaque = NO;
 	view.backgroundColor = [self colorForValue:self.value];
 	view.layer.cornerRadius = 15;
@@ -105,7 +105,7 @@ static NSString *bundleID = @"com.uroboro.2048oard";
 
 	UILabel *valueLabel = [[UILabel alloc] initWithFrame:CGRectInset(view.frame, 5, 5)];
 	valueLabel.backgroundColor = [UIColor clearColor];
-	valueLabel.textColor = [UIColor darkGrayColor];
+	valueLabel.textColor = [UIColor lightGrayColor];
 	valueLabel.text = [NSString stringWithFormat:@"%d", self.value];
 	valueLabel.font = [UIFont systemFontOfSize:valueLabel.frame.size.height];
 	valueLabel.adjustsFontSizeToFitWidth = YES;
