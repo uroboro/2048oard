@@ -104,7 +104,6 @@ static NSString *bundleID = @"com.uroboro.2048oard";
 	view.backgroundColor = [self colorForValue:self.value];
 	view.layer.cornerRadius = 15;
 	view.layer.masksToBounds = YES;
-//	view.alpha = 0.4;
 
 	UILabel *valueLabel = [[UILabel alloc] initWithFrame:CGRectInset(view.frame, 5, 5)];
 	valueLabel.backgroundColor = [UIColor clearColor];
@@ -227,13 +226,6 @@ static NSString *bundleID = @"com.uroboro.2048oard";
 %end
 #endif /* SB2048IconView */
 
-static NSString *NSArrayDescriptionInSingleLine(NSArray *a) {
-	if (!a) {
-		return nil;
-	}
-	return [NSString stringWithFormat:@"@[%@]", [a componentsJoinedByString:@","]];
-}
-
 static CGRect frameForPosition(NSInteger row, NSInteger column) {
 	CGSize s = [%c(SBIconView) defaultIconSize];
 	int offsets[4] = {0, 1, 3, 4};
@@ -284,13 +276,9 @@ static NSArray *arraysWithDirection(NSArray *array, UISwipeGestureRecognizerDire
 
 	NSMutableArray *a = [NSMutableArray new];
 	NSInteger x, y;
-//	printf("x:%d,%d,%d\n", xm, xd, xM);
-//	printf("y:%d,%d,%d\n", ym, yd, yM);
-//	printf("d:%d\n", direction);
 	for ((!xy ? (y = ym) : (x = xm)); (!xy ? (y != yM) : (x != xM)); y += !xy * yd, x +=  xy * xd) {
 		NSMutableArray *temp = [NSMutableArray new];
 		for (( xy ? (y = ym) : (x = xm)); ( xy ? (y != yM) : (x != xM)); y +=  xy * yd, x += !xy * xd) {
-//			printf("%d ", indexForPosition(y, x));
 			[temp addObject:array[indexForPosition(y, x)]];
 		}
 		[a addObject:temp];
@@ -422,12 +410,8 @@ static NSArray *composedArrayWithDirection(NSArray *array, UISwipeGestureRecogni
 
 	NSMutableArray *a = [NSMutableArray new];
 	NSInteger x, y;
-//	printf("x:%d,%d,%d\n", xm, xd, xM);
-//	printf("y:%d,%d,%d\n", ym, yd, yM);
-//	printf("d:%d\n", direction);
 	for ((!xy ? (y = ym) : (x = xm)); (!xy ? (y != yM) : (x != xM)); y += !xy * yd, x +=  xy * xd) {
 		for (( xy ? (y = ym) : (x = xm)); ( xy ? (y != yM) : (x != xM)); y +=  xy * yd, x += !xy * xd) {
-//			printf("%d ", indexForPosition(y, x));
 			[a addObject:array[y][x]];
 		}
 	}
@@ -496,39 +480,6 @@ static BOOL canMakeMovements(NSArray *array) {
 	BOOL c0 = [aRight isEqualToArray:aLeft];
 	BOOL c1 = [aUp isEqualToArray:aDown];
 	return !((c0 && c1) ? [aRight isEqualToArray:aUp] : NO);
-}
-
-static void showBanner(NSString *titleString, NSString *messageString, NSString *magicID) {
-	if (kCFCoreFoundationVersionNumber < 600) { // iOS 2-4
-		// Figure out what to do
-		return;
-	}
-
-    BBBulletinRequest *bulletin = [%c(BBBulletinRequest) new];
-    bulletin.sectionID = magicID;
-    bulletin.bulletinID = magicID;
-    bulletin.publisherBulletinID = magicID;
-    bulletin.recordID = magicID;
-    bulletin.title = titleString;
-    bulletin.message = messageString;
-    bulletin.date = [NSDate date];
-//  bulletin.lastInterruptDate = [NSDate date];
-
-    SBBulletinBannerController *bbc = (SBBulletinBannerController *)[%c(SBBulletinBannerController) sharedInstance];
-    if (kCFCoreFoundationVersionNumber < 700) { // iOS 5
-        bulletin.primaryAttachmentType = 0;
-        SBBulletinBannerItem *bannerItem = [%c(SBBulletinBannerItem) itemWithBulletin:bulletin];
-        [bbc _presentBannerForItem:bannerItem];
-    } else if (kCFCoreFoundationVersionNumber < 800) { // iOS 6
-        SBBulletinBannerItem *bannerItem = [%c(SBBulletinBannerItem) itemWithBulletin:bulletin andObserver:nil];
-        [(SBBannerController *)[%c(SBBannerController) sharedInstance] _presentBannerView:[bbc newBannerViewForItem:bannerItem]];
-    } else { // iOS 7-8
-		[bbc observer:nil addBulletin:bulletin forFeed:2];
-	}
-
-    [bulletin release];
-
-    return;
 }
 
 static LAActivator *_LASharedActivator;
@@ -628,9 +579,7 @@ static LAActivator *_LASharedActivator;
 	[_overlay setWindowLevel:UIWindowLevelStatusBar-1];
 	[_overlay setAutoresizesSubviews:YES];
 	[_overlay setAutoresizingMask:(UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight)];
-#if DEBUG
-	[_overlay setBackgroundColor:[UIColor colorWithRed:0.7 green:0.7 blue:0.7 alpha:0.3]];
-#endif
+
 	for (UISwipeGestureRecognizerDirection d = UISwipeGestureRecognizerDirectionRight; d <= UISwipeGestureRecognizerDirectionDown; d <<= 1) {
 		UISwipeGestureRecognizer *sgr = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleSwipeGesture:)];
 		sgr.direction = d;
@@ -691,9 +640,6 @@ static LAActivator *_LASharedActivator;
 		_overlay = nil;
 	}
 
-#if FILE_OUTPUT
-	remove("/User/2048oard.txt");
-#endif /* FILE_OUTPUT */
 }
 
 - (BOOL)act {
@@ -809,7 +755,7 @@ static LAActivator *_LASharedActivator;
 	}];
 }
 
--(void)spawnNewGameFromSender:(UIButton *)button {
+- (void)spawnNewGameFromSender:(UIButton *)button {
 	UIView *gameOverScreen = [[button layer] valueForKey:@"screen"];
 	[UIView animateWithDuration:0.5 animations:^{
 		gameOverScreen.alpha = 0.0;
@@ -821,42 +767,15 @@ static LAActivator *_LASharedActivator;
 	}];
 }
 
--(void)spawnNewGame {
+- (void)spawnNewGame {
 	_preview = randomArrayOf16Numbers();
-	if (0) NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_preview));
-
 	[self updateBoard];
-
-#if FILE_OUTPUT
-	FILE *fp = fopen("/User/2048oard.txt", "w");
-	for (int j = 0; j < 16; j++) {
-		fprintf(fp, "%d%c", [_preview[j] intValue], (j%4==3)?'\n':' ');
-	}
-	fclose(fp);
-#endif /* FILE_OUTPUT */
 }
 
 - (void)handleSwipeGesture:(UISwipeGestureRecognizer *)gestureRecognizer {
 	UISwipeGestureRecognizerDirection dir = gestureRecognizer.direction;
-#if DEBUG
-	switch (dir) {
-	case UISwipeGestureRecognizerDirectionRight:
-		[_overlay setBackgroundColor:[UIColor colorWithRed:1 green:0 blue:0 alpha:0.3]];
-	break;
-	case UISwipeGestureRecognizerDirectionLeft:
-		[_overlay setBackgroundColor:[UIColor colorWithRed:0 green:1 blue:0 alpha:0.3]];
-	break;
-	case UISwipeGestureRecognizerDirectionUp:
-		[_overlay setBackgroundColor:[UIColor colorWithRed:0 green:0 blue:1 alpha:0.3]];
-	break;
-	case UISwipeGestureRecognizerDirectionDown:
-		[_overlay setBackgroundColor:[UIColor colorWithRed:1 green:1 blue:0 alpha:0.3]];
-	break;
-	}
-#endif
 
 	NSArray *procValues = processArrayWithDirection(_preview, dir);
-//	NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_preview));
 	[self updateBoard];
 
 	NSMutableArray *newValues = [procValues mutableCopy];
@@ -879,18 +798,8 @@ static LAActivator *_LASharedActivator;
 	BOOL b = canMakeMovements(_preview);
 	if (!b) {
 		// Present end screen
-		if (0) showBanner(@"banner", @"Game over :(", bundleID);
-
 		[self showGameOverScreen];
 	}
-
-#if FILE_OUTPUT
-	FILE *fp = fopen("/User/2048oard.txt", "w");
-	for (int j = 0; j < 16; j++) {
-		fprintf(fp, "%d%c", [_preview[j] intValue], (j%4==3)?'\n':' ');
-	}
-	fclose(fp);
-#endif /* FILE_OUTPUT */
 }
 
 - (void)handlePanGesture:(UITapGestureRecognizer *)gestureRecognizer {
