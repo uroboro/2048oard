@@ -202,6 +202,7 @@ static NSString *bundleID = @"com.uroboro.2048oard";
 #endif /* SB2048Icon */
 
 #if 1 /* SB2048IconView */
+
 @interface SB2048IconView : SBIconView
 @end
 
@@ -222,6 +223,7 @@ static NSString *bundleID = @"com.uroboro.2048oard";
 }
 
 %end
+
 #endif /* SB2048IconView */
 
 static CGRect frameForPosition(NSInteger row, NSInteger column) {
@@ -820,7 +822,7 @@ static void loadActivator() {
 // UIGestureRecognizerDelegate methods
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
-    return YES;
+	return YES;
 }
 
 // LAListener protocol methods
