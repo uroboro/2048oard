@@ -13,8 +13,6 @@
 
 static NSString *bundleID = @"com.uroboro.2048oard";
 
-#define FILE_OUTPUT 1
-
 @interface _2048oard : NSObject <LAListener, UIGestureRecognizerDelegate> {
 }
 @property (nonatomic, retain) NSMutableArray *preview;
