@@ -611,23 +611,10 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 }
 
 - (void)show {
-	_preview = randomArrayOf16Numbers();
-	NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_preview));
-
-#if FILE_OUTPUT
-	FILE *fp = fopen("/User/2048oard.txt", "w");
-	for (int j = 0; j < 16; j++) {
-		fprintf(fp, "%d%c", [_preview[j] intValue], (j%4==3)?'\n':' ');
-	}
-	fclose(fp);
-#endif /* FILE_OUTPUT */
-
 	_board = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
 	[_board setWindowLevel:UIWindowLevelStatusBar-2];
 	[_board setAutoresizesSubviews:YES];
 	[_board setAutoresizingMask:(UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight)];
-
-	[self updateBoard];
 	[_board setHidden:NO];
 
 	_overlay = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
@@ -649,6 +636,8 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 	[_overlay addGestureRecognizer:tgr];
 
 	[_overlay makeKeyAndVisible];
+
+	[self spawnNewGame];
 }
 
 - (void)updateBoard {
@@ -827,8 +816,17 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 
 -(void)spawnNewGame {
 	_preview = randomArrayOf16Numbers();
+	if (0) NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_preview));
 
 	[self updateBoard];
+
+#if FILE_OUTPUT
+	FILE *fp = fopen("/User/2048oard.txt", "w");
+	for (int j = 0; j < 16; j++) {
+		fprintf(fp, "%d%c", [_preview[j] intValue], (j%4==3)?'\n':' ');
+	}
+	fclose(fp);
+#endif /* FILE_OUTPUT */
 }
 
 - (void)handleSwipeGesture:(UISwipeGestureRecognizer *)gestureRecognizer {
