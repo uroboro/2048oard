@@ -583,6 +583,33 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 	[self setIconViewsAlpha:1];
 }
 
+- (NSString *)saveGamePath {
+	return [NSString stringWithFormat:@"/User/Library/Preferences/%@.plist", bundleID];
+}
+
+- (void)loadGame {
+	NSString *path = [self saveGamePath];
+	if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
+		_preview = [NSArray arrayWithContentsOfFile:path];
+	}
+}
+
+- (void)saveGame {
+	NSString *path = [self saveGamePath];
+	if (_preview) {
+		[_preview writeToFile:path atomically:YES];
+	}
+}
+
+- (void)deleteGame {
+	NSString *path = [self saveGamePath];
+	NSError *e = nil;
+	if (![[NSFileManager defaultManager] removeItemAtPath:path error:&e]) {
+		NSLog(@"Error deleting file: %@", e);
+	}
+	_preview = nil;
+}
+
 - (void)show {
 	_preview = randomArrayOf16Numbers();
 	NSLog(@"\033[32mX_2048oard: %@\033[0m", NSArrayDescriptionInSingleLine(_preview));
