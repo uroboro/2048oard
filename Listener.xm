@@ -482,9 +482,13 @@ static BOOL canMakeMovements(NSArray *array) {
 
 static LAActivator *_LASharedActivator;
 
-%ctor {
-	dlopen("/usr/lib/libactivator.dylib", RTLD_LAZY);
-	_LASharedActivator = [objc_getClass("LASharedActivator") sharedInstance];
+static void loadActivator() {
+	NSLog(@"X2048:: attempting to load libactivator");
+	void *la = dlopen("/usr/lib/libactivator.dylib", RTLD_LAZY);
+	if (!(char *)la) {
+		NSLog(@"X2048:: failed to load libactivator");
+	}
+	_LASharedActivator = [objc_getClass("LAActivator") sharedInstance];
 }
 
 @implementation _2048oard
@@ -499,23 +503,32 @@ static LAActivator *_LASharedActivator;
 }
 
 + (void)load {
+	loadActivator();
 	[self sharedInstance];
 }
 
 - (id)init {
 	if ([super init]) {
 		// Register our listener
-		if (_LASharedActivator && _LASharedActivator.isRunningInsideSpringBoard) {
-			[_LASharedActivator registerListener:self forName:bundleID];
+		if (_LASharedActivator) {
+			NSLog(@"X2048:: libactivator is installed");
+			if (![_LASharedActivator hasSeenListenerWithName:bundleID]) {
+				[_LASharedActivator assignEvent:[%c(LAEvent) eventWithName:@"libactivator.volume.both.press"] toListenerWithName:bundleID];
+			}
+			if (_LASharedActivator.isRunningInsideSpringBoard) {
+				[_LASharedActivator registerListener:self forName:bundleID];
+			}
 		}
 	}
 	return self;
 }
 
 - (void)dealloc {
-	if (_LASharedActivator && _LASharedActivator.runningInsideSpringBoard) {
-		[_LASharedActivator unregisterListenerWithName:bundleID];
-	}
+	if (_LASharedActivator) {
+		if (_LASharedActivator.runningInsideSpringBoard) {
+			[_LASharedActivator unregisterListenerWithName:bundleID];
+		}
+	} 
 	[super dealloc];
 }
 
