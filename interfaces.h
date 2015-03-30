@@ -49,33 +49,4 @@
 - (void)_updateLabel; // >= iOS 7
 @end
 
-@interface BBBulletinRequest : NSObject {}
-@property (nonatomic, copy) NSString *bulletinID;
-@property (nonatomic, copy) NSString *sectionID;
-@property (nonatomic, copy) NSString *recordID;
-@property (nonatomic, copy) NSString *publisherBulletinID;
-@property (nonatomic, copy) NSString *title;
-@property (nonatomic, copy) NSString *subtitle;
-@property (nonatomic, copy) NSString *message;
-@property (nonatomic, retain) NSDate *date;
-@property (nonatomic, assign) int primaryAttachmentType;
-@end
-
-@interface SBBulletinBannerController : NSObject
-+ (id)sharedInstance;
-- (void)_presentBannerForItem:(id)arg1; // iOS 5
-- (id)newBannerViewForItem:(id)arg1; // iOS 6
-- (void)observer:(id)arg1 addBulletin:(BBBulletinRequest *)arg2 forFeed:(NSUInteger)arg3; // iOS 7-8
-@end
-
-@interface SBBulletinBannerItem : NSObject
-+ (id)itemWithBulletin:(id)arg1; // iOS 5
-+ (id)itemWithBulletin:(id)arg1 andObserver:(id)arg2; // iOS 6
-@end
-
-@interface SBBannerController : NSObject
-+ (id)sharedInstance;
-- (void)_presentBannerView:(id)arg1; // iOS 7-8
-@end
-
 #endif /* INTERFACES_H */
