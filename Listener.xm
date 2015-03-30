@@ -15,7 +15,7 @@ static NSString *bundleID = @"com.uroboro.2048oard";
 
 #define FILE_OUTPUT 1
 
-@interface _2048oard : NSObject <LAListener> {
+@interface _2048oard : NSObject <LAListener, UIGestureRecognizerDelegate> {
 }
 @property (nonatomic, retain) NSMutableArray *preview;
 
@@ -613,8 +613,13 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 	for (UISwipeGestureRecognizerDirection d = UISwipeGestureRecognizerDirectionRight; d <= UISwipeGestureRecognizerDirectionDown; d <<= 1) {
 		UISwipeGestureRecognizer *sgr = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleSwipeGesture:)];
 		sgr.direction = d;
+		sgr.delegate = self;
 		[_overlay addGestureRecognizer:sgr];
 	}
+	UITapGestureRecognizer *tgr = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handlePanGesture:)];
+	tgr.numberOfTouchesRequired = 2;
+	tgr.delegate = self;
+	[_overlay addGestureRecognizer:tgr];
 
 	[_overlay makeKeyAndVisible];
 }
@@ -854,6 +859,16 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 	}
 	fclose(fp);
 #endif /* FILE_OUTPUT */
+}
+
+- (void)handlePanGesture:(UITapGestureRecognizer *)gestureRecognizer {
+	[self act];
+}
+
+// UIGestureRecognizerDelegate methods
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
+    return YES;
 }
 
 // LAListener protocol methods
