@@ -15,7 +15,6 @@
 
 @interface _2048oard : NSObject <LAListener> {
 }
-@property (nonatomic, retain) NSMutableArray *currentLayout;
 @property (nonatomic, retain) NSMutableArray *preview;
 
 // UI
@@ -650,10 +649,6 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 }
 
 - (void)dismiss {
-	if (_currentLayout) {
-		[_currentLayout release];
-		_currentLayout = nil;
-	}
 	if (_board) {
 		[_board setHidden:YES];
 		[_board release];
@@ -784,7 +779,7 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 	}];
 }
 
--(void)spawnNewGameFromSender:(UIButton*)button {
+-(void)spawnNewGameFromSender:(UIButton *)button {
 	UIView *gameOverScreen = [[button layer] valueForKey:@"screen"];
 	[UIView animateWithDuration:0.5 animations:^{
 		gameOverScreen.alpha = 0.0;
@@ -798,6 +793,7 @@ static void showBanner(NSString *titleString, NSString *messageString, NSString 
 
 -(void)spawnNewGame {
 	_preview = randomArrayOf16Numbers();
+
 	[self updateBoard];
 }
 
