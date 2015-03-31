@@ -294,7 +294,7 @@ static void loadActivator() {
 }
 
 - (void)present {
-	[self hideIcons];
+	[self concealIcons];
 
 	_board = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
 	[_board setWindowLevel:UIWindowLevelStatusBar-2];
@@ -518,7 +518,7 @@ static void loadActivator() {
 	}];
 }
 
-- (void)hideIcons {
+- (void)concealIcons {
 	[self setIconViewsAlpha:0];
 }
 
