@@ -238,6 +238,9 @@ CG_EXTERN NSMutableArray *randomArrayOf16Numbers() {
 
 CG_EXTERN NSInteger highestNumberInArray(NSArray *array) {
 	__block NSInteger i = 0;
+	if (!array) {
+		return i;
+	}
 	[array enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
 		NSInteger value = [(NSNumber *)obj intValue];
 		if (value > i) {
@@ -248,6 +251,9 @@ CG_EXTERN NSInteger highestNumberInArray(NSArray *array) {
 }
 
 CG_EXTERN BOOL canMakeMovements(NSArray *array) {
+	if (!array) {
+		return NO;
+	}
 	NSArray *aRight = processArrayWithDirection(array, UISwipeGestureRecognizerDirectionRight);
 	NSArray *aLeft = processArrayWithDirection(array, UISwipeGestureRecognizerDirectionLeft);
 	NSArray *aUp = processArrayWithDirection(array, UISwipeGestureRecognizerDirectionUp);
