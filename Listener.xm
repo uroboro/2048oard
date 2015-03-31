@@ -28,7 +28,7 @@ static NSString *bundleID = @"com.uroboro.2048oard";
 - (void)dismiss;
 
 @end
-STOP GOING BACK
+
 #if 1 /* SB2048Icon */
 
 @implementation NSObject (SB2048Icon)
@@ -359,11 +359,7 @@ static void loadActivator() {
 }
 
 - (void)processTurnWithDirection:(UISwipeGestureRecognizerDirection)direction {
-
-	NSArray *procValues = processArrayWithDirection(_preview, direction);
-//	[self updateBoard];
-
-	NSMutableArray *newValues = [procValues mutableCopy];
+	NSMutableArray *newValues = [processArrayWithDirection(_preview, direction) mutableCopy];
 	if (![newValues isEqualToArray:_preview]) {
 		addRandomValueToArray(newValues);
 		[self updateBoard];
@@ -534,8 +530,9 @@ static void loadActivator() {
 
 - (void)loadGame {
 	NSString *path = [self saveGamePath];
-	if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
-		_preview = [NSArray arrayWithContentsOfFile:path];
+	if (0&&[[NSFileManager defaultManager] fileExistsAtPath:path]) {
+		NSDictionary *d = [NSDictionary dictionaryWithContentsOfFile:path];
+		_preview = [d objectForKey:@"saveGameKey"];
 	} else {
 		_preview = randomArrayOf16Numbers();
 	}
@@ -543,14 +540,18 @@ static void loadActivator() {
 
 - (void)saveGame {
 	if (_preview) {
-		[_preview writeToFile:[self saveGamePath] atomically:YES];
+		NSDictionary *d = @{@"saveGameKey":_preview};
+		[d writeToFile:[self saveGamePath] atomically:YES];
 	}
 }
 
 - (void)deleteGame {
-	NSError *e = nil;
-	if (![[NSFileManager defaultManager] removeItemAtPath:[self saveGamePath] error:&e]) {
-		NSLog(@"Error deleting file: %@", e);
+	NSString *path = [self saveGamePath];
+	if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
+		NSError *e = nil;
+		if (![[NSFileManager defaultManager] removeItemAtPath:path error:&e]) {
+			NSLog(@"Error deleting file: %@", e);
+		}
 	}
 	_preview = nil;
 }
