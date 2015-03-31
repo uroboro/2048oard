@@ -384,7 +384,12 @@ static void loadActivator() {
 
 - (void)dismiss {
 	if (_board) {
-		[_board setHidden:YES];
+		for (UIView *v in _board.subviews) {
+			[self unpopupView:v];
+		}
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.5 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+			[_board setHidden:YES];
+		});
 		[_board release];
 		_board = nil;
 	}
@@ -441,6 +446,21 @@ static void loadActivator() {
 		} completion:^(BOOL finished) {
 			[UIView animateWithDuration:0.3/2 animations:^{
 				view.transform = CGAffineTransformIdentity;
+			}];
+		}];
+	}];
+}
+
+- (void)unpopupView:(UIView *)view {
+	view.transform = CGAffineTransformIdentity;
+	[UIView animateWithDuration:0.3/2 animations:^{
+		view.transform = CGAffineTransformScale(CGAffineTransformIdentity, 0.9, 0.9);
+	} completion:^(BOOL finished) {
+		[UIView animateWithDuration:0.3/2 animations:^{
+			view.transform = CGAffineTransformScale(CGAffineTransformIdentity, 1.1, 1.1);
+		} completion:^(BOOL finished) {
+			[UIView animateWithDuration:0.3/1.5 animations:^{
+				view.transform = CGAffineTransformScale(CGAffineTransformIdentity, 0.001, 0.001);
 			}];
 		}];
 	}];
