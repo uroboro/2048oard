@@ -276,131 +276,7 @@ static void loadActivator() {
 	[super dealloc];
 }
 
-- (void)setIconViewsAlpha:(CGFloat)a {
-	SBIconController *ic = (SBIconController *)[%c(SBIconController) sharedInstance];
-	NSArray *icons = [[ic currentRootIconList] icons];
-	[icons enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-		SBIcon *icon = (SBIcon *)obj;
-		UIView *iconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
-		[UIView animateWithDuration:0.2 animations:^{
-			[iconView setAlpha:a];
-		}];
-	}];
-}
-
-- (void)hideIcons {
-	[self setIconViewsAlpha:0];
-}
-
-- (void)revealIcons {
-	[self setIconViewsAlpha:1];
-}
-
-- (NSString *)saveGamePath {
-	return [NSString stringWithFormat:@"/User/Library/Preferences/%@.plist", bundleID];
-}
-
-- (void)loadGame {
-	NSString *path = [self saveGamePath];
-	if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
-		_preview = [NSArray arrayWithContentsOfFile:path];
-	}
-}
-
-- (void)saveGame {
-	NSString *path = [self saveGamePath];
-	if (_preview) {
-		[_preview writeToFile:path atomically:YES];
-	}
-}
-
-- (void)deleteGame {
-	NSString *path = [self saveGamePath];
-	NSError *e = nil;
-	if (![[NSFileManager defaultManager] removeItemAtPath:path error:&e]) {
-		NSLog(@"Error deleting file: %@", e);
-	}
-	_preview = nil;
-}
-
-- (void)show {
-	_board = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
-	[_board setWindowLevel:UIWindowLevelStatusBar-2];
-	[_board setAutoresizesSubviews:YES];
-	[_board setAutoresizingMask:(UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight)];
-	[_board setHidden:NO];
-
-	_overlay = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
-	[_overlay setWindowLevel:UIWindowLevelStatusBar-1];
-	[_overlay setAutoresizesSubviews:YES];
-	[_overlay setAutoresizingMask:(UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight)];
-
-	for (UISwipeGestureRecognizerDirection d = UISwipeGestureRecognizerDirectionRight; d <= UISwipeGestureRecognizerDirectionDown; d <<= 1) {
-		UISwipeGestureRecognizer *sgr = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleSwipeGesture:)];
-		sgr.direction = d;
-		sgr.delegate = self;
-		[_overlay addGestureRecognizer:sgr];
-	}
-	UITapGestureRecognizer *tgr = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handlePanGesture:)];
-	tgr.numberOfTouchesRequired = 2;
-	tgr.delegate = self;
-	[_overlay addGestureRecognizer:tgr];
-
-	[_overlay makeKeyAndVisible];
-
-	[self spawnNewGame];
-}
-
-- (void)updateBoard {
-	if (!_board) {
-		return;
-	}
-	for (UIView *v in _board.subviews) {
-		[v removeFromSuperview];
-	}
-
-	if (!_preview) {
-		return;
-	}
-	[_preview enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-		if (![obj intValue]) {
-			return;
-		}
-
-		SB2048IconView *v = [[%c(SB2048IconView) alloc] initWithDefaultSize];
-		v.icon = [%c(SB2048Icon) new];
-		((SB2048Icon *)v.icon).value = [obj intValue];
-		if (kCFCoreFoundationVersionNumber <= 800) { // < iOS 7
-			[v updateLabel];
-		} else {
-			[v _updateLabel];
-		}
-		v.frame = frameForPosition(positionForIndex(idx));
-		[_board addSubview:v];
-		[self popupView:v];
-		[v release];
-	}];
-}
-
-- (void)dismiss {
-	if (_board) {
-		for (UIView *v in _board.subviews) {
-			[self unpopupView:v];
-		}
-		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.5 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-			[_board setHidden:YES];
-		});
-		[_board release];
-		_board = nil;
-	}
-
-	if (_overlay) {
-		[_overlay setHidden:YES];
-		[_overlay release];
-		_overlay = nil;
-	}
-
-}
+// Listener main methods
 
 - (BOOL)act {
 	// Ensures alert view is dismissed
@@ -436,34 +312,88 @@ static void loadActivator() {
 	return _showing;
 }
 
-- (void)popupView:(UIView *)view {
-	view.transform = CGAffineTransformScale(CGAffineTransformIdentity, 0.001, 0.001);
-	[UIView animateWithDuration:0.3/1.5 animations:^{
-		view.transform = CGAffineTransformScale(CGAffineTransformIdentity, 1.1, 1.1);
-	} completion:^(BOOL finished) {
-		[UIView animateWithDuration:0.3/2 animations:^{
-			view.transform = CGAffineTransformScale(CGAffineTransformIdentity, 0.9, 0.9);
-		} completion:^(BOOL finished) {
-			[UIView animateWithDuration:0.3/2 animations:^{
-				view.transform = CGAffineTransformIdentity;
-			}];
-		}];
+- (void)show {
+	_board = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
+	[_board setWindowLevel:UIWindowLevelStatusBar-2];
+	[_board setAutoresizesSubviews:YES];
+	[_board setAutoresizingMask:(UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight)];
+	[_board setHidden:NO];
+
+	_overlay = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
+	[_overlay setWindowLevel:UIWindowLevelStatusBar-1];
+	[_overlay setAutoresizesSubviews:YES];
+	[_overlay setAutoresizingMask:(UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight)];
+
+	for (UISwipeGestureRecognizerDirection d = UISwipeGestureRecognizerDirectionRight; d <= UISwipeGestureRecognizerDirectionDown; d <<= 1) {
+		UISwipeGestureRecognizer *sgr = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleSwipeGesture:)];
+		sgr.direction = d;
+		sgr.delegate = self;
+		[_overlay addGestureRecognizer:sgr];
+	}
+	UITapGestureRecognizer *tgr = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handlePanGesture:)];
+	tgr.numberOfTouchesRequired = 2;
+	tgr.delegate = self;
+	[_overlay addGestureRecognizer:tgr];
+
+	[_overlay makeKeyAndVisible];
+
+	[self spawnNewGame];
+}
+
+- (void)dismiss {
+	if (_board) {
+		for (UIView *v in _board.subviews) {
+			[self unpopupView:v];
+		}
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.5 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+			[_board setHidden:YES];
+		});
+		[_board release];
+		_board = nil;
+	}
+
+	if (_overlay) {
+		[_overlay setHidden:YES];
+		[_overlay release];
+		_overlay = nil;
+	}
+
+}
+
+- (void)updateBoard {
+	if (!_board) {
+		return;
+	}
+	for (UIView *v in _board.subviews) {
+		[v removeFromSuperview];
+	}
+
+	if (!_preview) {
+		return;
+	}
+	[_preview enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+		if (![obj intValue]) {
+			return;
+		}
+
+		SB2048IconView *v = [[%c(SB2048IconView) alloc] initWithDefaultSize];
+		v.icon = [%c(SB2048Icon) new];
+		((SB2048Icon *)v.icon).value = [obj intValue];
+		if (kCFCoreFoundationVersionNumber <= 800) { // < iOS 7
+			[v updateLabel];
+		} else {
+			[v _updateLabel];
+		}
+		v.frame = frameForPosition(positionForIndex(idx));
+		[_board addSubview:v];
+		[self popupView:v];
+		[v release];
 	}];
 }
 
-- (void)unpopupView:(UIView *)view {
-	view.transform = CGAffineTransformIdentity;
-	[UIView animateWithDuration:0.3/2 animations:^{
-		view.transform = CGAffineTransformScale(CGAffineTransformIdentity, 0.9, 0.9);
-	} completion:^(BOOL finished) {
-		[UIView animateWithDuration:0.3/2 animations:^{
-			view.transform = CGAffineTransformScale(CGAffineTransformIdentity, 1.1, 1.1);
-		} completion:^(BOOL finished) {
-			[UIView animateWithDuration:0.3/1.5 animations:^{
-				view.transform = CGAffineTransformScale(CGAffineTransformIdentity, 0.001, 0.001);
-			}];
-		}];
-	}];
+- (void)spawnNewGame {
+	_preview = randomArrayOf16Numbers();
+	[self updateBoard];
 }
 
 - (void)showGameOverScreen {
@@ -542,10 +472,90 @@ static void loadActivator() {
 	}];
 }
 
-- (void)spawnNewGame {
-	_preview = randomArrayOf16Numbers();
-	[self updateBoard];
+// SpringBoard SBIconView hide/reveal
+
+- (void)setIconViewsAlpha:(CGFloat)a {
+	SBIconController *ic = (SBIconController *)[%c(SBIconController) sharedInstance];
+	NSArray *icons = [[ic currentRootIconList] icons];
+	[icons enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+		SBIcon *icon = (SBIcon *)obj;
+		UIView *iconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
+		[UIView animateWithDuration:0.2 animations:^{
+			[iconView setAlpha:a];
+		}];
+	}];
 }
+
+- (void)hideIcons {
+	[self setIconViewsAlpha:0];
+}
+
+- (void)revealIcons {
+	[self setIconViewsAlpha:1];
+}
+
+// Game state management
+
+- (NSString *)saveGamePath {
+	return [NSString stringWithFormat:@"/User/Library/Preferences/%@.plist", bundleID];
+}
+
+- (void)loadGame {
+	NSString *path = [self saveGamePath];
+	if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
+		_preview = [NSArray arrayWithContentsOfFile:path];
+	}
+}
+
+- (void)saveGame {
+	NSString *path = [self saveGamePath];
+	if (_preview) {
+		[_preview writeToFile:path atomically:YES];
+	}
+}
+
+- (void)deleteGame {
+	NSString *path = [self saveGamePath];
+	NSError *e = nil;
+	if (![[NSFileManager defaultManager] removeItemAtPath:path error:&e]) {
+		NSLog(@"Error deleting file: %@", e);
+	}
+	_preview = nil;
+}
+
+// Animations
+
+- (void)popupView:(UIView *)view {
+	view.transform = CGAffineTransformScale(CGAffineTransformIdentity, 0.001, 0.001);
+	[UIView animateWithDuration:0.3/1.5 animations:^{
+		view.transform = CGAffineTransformScale(CGAffineTransformIdentity, 1.1, 1.1);
+	} completion:^(BOOL finished) {
+		[UIView animateWithDuration:0.3/2 animations:^{
+			view.transform = CGAffineTransformScale(CGAffineTransformIdentity, 0.9, 0.9);
+		} completion:^(BOOL finished) {
+			[UIView animateWithDuration:0.3/2 animations:^{
+				view.transform = CGAffineTransformIdentity;
+			}];
+		}];
+	}];
+}
+
+- (void)unpopupView:(UIView *)view {
+	view.transform = CGAffineTransformIdentity;
+	[UIView animateWithDuration:0.3/2 animations:^{
+		view.transform = CGAffineTransformScale(CGAffineTransformIdentity, 0.9, 0.9);
+	} completion:^(BOOL finished) {
+		[UIView animateWithDuration:0.3/2 animations:^{
+			view.transform = CGAffineTransformScale(CGAffineTransformIdentity, 1.1, 1.1);
+		} completion:^(BOOL finished) {
+			[UIView animateWithDuration:0.3/1.5 animations:^{
+				view.transform = CGAffineTransformScale(CGAffineTransformIdentity, 0.001, 0.001);
+			}];
+		}];
+	}];
+}
+
+// _overlay's gestureRecognizer methods
 
 - (void)handleSwipeGesture:(UISwipeGestureRecognizer *)gestureRecognizer {
 	UISwipeGestureRecognizerDirection dir = gestureRecognizer.direction;
