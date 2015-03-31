@@ -15,4 +15,6 @@ after-install::
 	install.exec "killall -9 backboardd || killall -9 SpringBoard"
 
 remove:
-	@sudo apt-get remove $(THEOS_PACKAGE_NAME)
+	@exec ssh -p $(THEOS_DEVICE_PORT) root@$(THEOS_DEVICE_IP) "apt-get remove $(THEOS_PACKAGE_NAME)"
+
+#	@sudo apt-get remove $(THEOS_PACKAGE_NAME)
