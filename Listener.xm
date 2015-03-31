@@ -364,6 +364,36 @@ static void loadActivator() {
 
 }
 
+- (void)processTurnWithDirection:(UISwipeGestureRecognizerDirection)direction {
+
+	NSArray *procValues = processArrayWithDirection(_preview, direction);
+//	[self updateBoard];
+
+	NSMutableArray *newValues = [procValues mutableCopy];
+	if (![newValues isEqualToArray:_preview]) {
+		addRandomValueToArray(newValues);
+		[self updateBoard];
+/* Placeholder for popup animation for inserted icons (instead of popping up all of them)
+		[newValues enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+			if (![obj isEqual:_preview[idx]]) {
+				//this is not the correct index for the subview, gotta recalculate
+//				[self popupView:_board.subviews[idx]];
+				[self popupView:_board.subviews[0]];
+			}
+		}];
+*/
+	}
+	_preview = newValues;
+	[self updateBoard];
+
+	BOOL b = canMakeMovements(_preview);
+	if (!b) {
+		// Present end screen
+		[self showGameOverScreen];
+		[self deleteGame];
+	}
+}
+
 - (void)updateBoard {
 	if (!_board) {
 		return;
@@ -566,34 +596,7 @@ static void loadActivator() {
 // _overlay's gestureRecognizer methods
 
 - (void)handleSwipeGesture:(UISwipeGestureRecognizer *)gestureRecognizer {
-	UISwipeGestureRecognizerDirection dir = gestureRecognizer.direction;
-
-	NSArray *procValues = processArrayWithDirection(_preview, dir);
-//	[self updateBoard];
-
-	NSMutableArray *newValues = [procValues mutableCopy];
-	if (![newValues isEqualToArray:_preview]) {
-		addRandomValueToArray(newValues);
-		[self updateBoard];
-/* Placeholder for popup animation for inserted icons (instead of popping up all of them)
-		[newValues enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-			if (![obj isEqual:_preview[idx]]) {
-				//this is not the correct index for the subview, gotta recalculate
-//				[self popupView:_board.subviews[idx]];
-				[self popupView:_board.subviews[0]];
-			}
-		}];
-*/
-	}
-	_preview = newValues;
-	[self updateBoard];
-
-	BOOL b = canMakeMovements(_preview);
-	if (!b) {
-		// Present end screen
-		[self showGameOverScreen];
-		[self deleteGame];
-	}
+	[self processTurnWithDirection:gestureRecognizer.direction];
 }
 
 - (void)handlePanGesture:(UITapGestureRecognizer *)gestureRecognizer {
