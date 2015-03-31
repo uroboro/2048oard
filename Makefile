@@ -1,7 +1,7 @@
 include theos/makefiles/common.mk
 
 TWEAK_NAME = 2048oard
-2048oard_FILES = Listener.xm
+2048oard_FILES = Listener.xm functions.xm
 2048oard_FRAMEWORKS = UIKit CoreGraphics
 #2048oard_LIBRARIES = activator
 
