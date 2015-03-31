@@ -26,10 +26,9 @@ static NSString *bundleID = @"com.uroboro.2048oard";
 
 - (void)show;
 - (void)dismiss;
-- (BOOL)act;
 
 @end
-
+STOP GOING BACK
 #if 1 /* SB2048Icon */
 
 @implementation NSObject (SB2048Icon)
@@ -153,15 +152,15 @@ static NSString *bundleID = @"com.uroboro.2048oard";
 
 #if 1 /* Figure out how to make the app use this class to prevent the SBUserInstalledApplicationIcon hook below */
 -(void)launch {
-	[[_2048oard sharedInstance] act];
+	[[_2048oard sharedInstance] show];
 }
 
 - (void)launchFromViewSwitcher {
-	[[_2048oard sharedInstance] act];
+	[[_2048oard sharedInstance] show];
 }
 
 - (void)launchFromLocation:(int)arg1 {
-	[[_2048oard sharedInstance] act];
+	[[_2048oard sharedInstance] show];
 }
 #endif /* Figure out how to make the app use this class to prevent the SBUserInstalledApplicationIcon hook below */
 
@@ -173,7 +172,7 @@ static NSString *bundleID = @"com.uroboro.2048oard";
 
 -(void)launch {
 	if ([self.applicationBundleID isEqualToString:bundleID]) {
-		[[_2048oard sharedInstance] act];
+		[[_2048oard sharedInstance] show];
 	} else {
 		%orig();
 	}
@@ -181,15 +180,15 @@ static NSString *bundleID = @"com.uroboro.2048oard";
 
 - (void)launchFromViewSwitcher {
 	if ([self.applicationBundleID isEqualToString:bundleID]) {
-		[[_2048oard sharedInstance] act];
+		[[_2048oard sharedInstance] show];
 	} else {
 		%orig();
 	}
 }
 
-- (void)launchFromLocation:(int)arg1 {
+- (void)launchFromLocation:(int)location {
 	if ([self.applicationBundleID isEqualToString:bundleID]) {
-		[[_2048oard sharedInstance] act];
+		[[_2048oard sharedInstance] show];
 	} else {
 		%orig();
 	}
@@ -278,41 +277,25 @@ static void loadActivator() {
 
 // Listener main methods
 
-- (BOOL)act {
-	// Ensures alert view is dismissed
-	// Returns YES if alert was visible previously
+- (void)show {
+	_showing = YES;
+
 	SBIconController *ic = [%c(SBIconController) sharedInstance];
-
-	if (!_showing) {
-		_showing = YES;
-
-		CGFloat folderTime = 0;
-		if ([ic hasOpenFolder]) {
-			_folderToOpen = [ic openFolder];
-			[ic closeFolderAnimated:YES];
-			folderTime = 0.5;
-		}
-
-		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, folderTime * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-			[self hideIcons];
-			[self show];
-		});
-	} else {
-		_showing = NO;
-		[self dismiss];
-		[self revealIcons];
-
-		if (_folderToOpen) {
-			dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.2 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-				[ic openFolder:_folderToOpen animated:YES];
-				_folderToOpen = nil;
-			});
-		}
+	CGFloat folderTime = 0;
+	if ([ic hasOpenFolder]) {
+		_folderToOpen = [ic openFolder];
+		[ic closeFolderAnimated:YES];
+		folderTime = 0.5;
 	}
-	return _showing;
+
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, folderTime * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+		[self present];
+	});
 }
 
-- (void)show {
+- (void)present {
+	[self hideIcons];
+
 	_board = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
 	[_board setWindowLevel:UIWindowLevelStatusBar-2];
 	[_board setAutoresizesSubviews:YES];
@@ -341,6 +324,8 @@ static void loadActivator() {
 }
 
 - (void)dismiss {
+	_showing = NO;
+
 	if (_board) {
 		for (UIView *v in _board.subviews) {
 			[self unpopupView:v];
@@ -353,6 +338,7 @@ static void loadActivator() {
 	}
 
 	if (_preview) {
+		[self saveGame];
 		_preview = nil;
 	}
 
@@ -362,6 +348,14 @@ static void loadActivator() {
 		_overlay = nil;
 	}
 
+	[self revealIcons];
+
+	if (_folderToOpen) {
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.2 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+			[[%c(SBIconController) sharedInstance] openFolder:_folderToOpen animated:YES];
+			_folderToOpen = nil;
+		});
+	}
 }
 
 - (void)processTurnWithDirection:(UISwipeGestureRecognizerDirection)direction {
@@ -600,8 +594,7 @@ static void loadActivator() {
 }
 
 - (void)handlePanGesture:(UITapGestureRecognizer *)gestureRecognizer {
-//	[self saveGame];
-	[self act];
+	[self dismiss];
 }
 
 // UIGestureRecognizerDelegate methods
@@ -614,29 +607,29 @@ static void loadActivator() {
 
 - (void)activator:(LAActivator *)activator receiveEvent:(LAEvent *)event {
 	// Called when we receive event
-	if ([self act]) {
+	if (!_showing) {
+		[self show];
 		[event setHandled:YES];
+	} else {
+		[self dismiss];
 	}
 }
 
 - (void)activator:(LAActivator *)activator abortEvent:(LAEvent *)event {
 	// Called when event is escalated to a higher event
 	// (short-hold sleep button becomes long-hold shutdown menu, etc)
-	_showing = YES;
-	[self act];
+	[self dismiss];
 }
 
 - (void)activator:(LAActivator *)activator otherListenerDidHandleEvent:(LAEvent *)event {
 	// Called when some other listener received an event; we should cleanup
-	_showing = YES;
-	[self act];
+	[self dismiss];
 }
 
 - (void)activator:(LAActivator *)activator receiveDeactivateEvent:(LAEvent *)event {
 	// Called when the home button is pressed.
 	// If (and only if) we are showing UI, we should dismiss it and call setHandled:
-	_showing = YES;
-	[self act];
+	[self dismiss];
 }
 
 // Metadata
