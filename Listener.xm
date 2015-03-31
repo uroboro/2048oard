@@ -151,7 +151,7 @@ static NSString *bundleID = @"com.uroboro.2048oard";
 }
 
 #if 1 /* Figure out how to make the app use this class to prevent the SBUserInstalledApplicationIcon hook below */
--(void)launch {
+- (void)launch {
 	[[_2048oard sharedInstance] show];
 }
 
@@ -262,6 +262,10 @@ static void loadActivator() {
 				[_LASharedActivator registerListener:self forName:bundleID];
 			}
 		}
+		[[NSNotificationCenter defaultCenter] addObserver:self
+			selector:@selector(springboardDidFinishLaunching:)
+			name:UIApplicationDidFinishLaunchingNotification
+			object:nil];
 	}
 	return self;
 }
@@ -273,6 +277,21 @@ static void loadActivator() {
 		}
 	} 
 	[super dealloc];
+}
+
+// Notification callbacks
+
+- (void)springboardDidFinishLaunching:(NSNotification *)notification {
+	SB2048Icon *icon = [%c(SB2048Icon) new];
+	SBIconController *ic = [%c(SBIconController) sharedInstance];
+	[ic addNewIconToDesignatedLocation:icon animate:NO scrollToList:NO saveIconState:NO];
+	SB2048IconView *iconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
+	icon.value = 2048;
+	if (kCFCoreFoundationVersionNumber <= 800) { // < iOS 7
+		[iconView updateLabel];
+	} else {
+		[iconView _updateLabel];
+	}
 }
 
 // Listener main methods
@@ -539,7 +558,7 @@ static void loadActivator() {
 }
 
 - (void)saveGame {
-	if (_preview) {
+	if (0&&_preview) {
 		NSDictionary *d = @{@"saveGameKey":_preview};
 		[d writeToFile:[self saveGamePath] atomically:YES];
 	}
@@ -547,7 +566,7 @@ static void loadActivator() {
 
 - (void)deleteGame {
 	NSString *path = [self saveGamePath];
-	if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
+	if (0&&[[NSFileManager defaultManager] fileExistsAtPath:path]) {
 		NSError *e = nil;
 		if (![[NSFileManager defaultManager] removeItemAtPath:path error:&e]) {
 			NSLog(@"Error deleting file: %@", e);

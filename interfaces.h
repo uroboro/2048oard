@@ -27,6 +27,7 @@
 - (void)closeFolderAnimated:(BOOL)animated;
 - (void)openFolder:(id)arg1 animated:(BOOL)animated;
 - (SBIconListView *)currentRootIconList;
+- (void)addNewIconToDesignatedLocation:(SBIcon *)icon animate:(BOOL)animate scrollToList:(BOOL)scrollToList saveIconState:(BOOL)saveIconState;
 @end
 
 @interface SBIconViewMap : NSObject
