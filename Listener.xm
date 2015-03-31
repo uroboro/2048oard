@@ -352,6 +352,10 @@ static void loadActivator() {
 		_board = nil;
 	}
 
+	if (_preview) {
+		_preview = nil;
+	}
+
 	if (_overlay) {
 		[_overlay setHidden:YES];
 		[_overlay release];
@@ -392,7 +396,7 @@ static void loadActivator() {
 }
 
 - (void)spawnNewGame {
-	_preview = randomArrayOf16Numbers();
+	[self loadGame];
 	[self updateBoard];
 }
 
@@ -508,20 +512,20 @@ static void loadActivator() {
 	NSString *path = [self saveGamePath];
 	if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
 		_preview = [NSArray arrayWithContentsOfFile:path];
+	} else {
+		_preview = randomArrayOf16Numbers();
 	}
 }
 
 - (void)saveGame {
-	NSString *path = [self saveGamePath];
 	if (_preview) {
-		[_preview writeToFile:path atomically:YES];
+		[_preview writeToFile:[self saveGamePath] atomically:YES];
 	}
 }
 
 - (void)deleteGame {
-	NSString *path = [self saveGamePath];
 	NSError *e = nil;
-	if (![[NSFileManager defaultManager] removeItemAtPath:path error:&e]) {
+	if (![[NSFileManager defaultManager] removeItemAtPath:[self saveGamePath] error:&e]) {
 		NSLog(@"Error deleting file: %@", e);
 	}
 	_preview = nil;
@@ -565,7 +569,7 @@ static void loadActivator() {
 	UISwipeGestureRecognizerDirection dir = gestureRecognizer.direction;
 
 	NSArray *procValues = processArrayWithDirection(_preview, dir);
-	[self updateBoard];
+//	[self updateBoard];
 
 	NSMutableArray *newValues = [procValues mutableCopy];
 	if (![newValues isEqualToArray:_preview]) {
@@ -588,10 +592,12 @@ static void loadActivator() {
 	if (!b) {
 		// Present end screen
 		[self showGameOverScreen];
+		[self deleteGame];
 	}
 }
 
 - (void)handlePanGesture:(UITapGestureRecognizer *)gestureRecognizer {
+//	[self saveGame];
 	[self act];
 }
 
