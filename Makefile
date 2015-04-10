@@ -1,3 +1,4 @@
+ARCHS = armv7 arm64
 include theos/makefiles/common.mk
 
 TWEAK_NAME = 2048oard
@@ -18,3 +19,6 @@ remove:
 	@exec ssh -p $(THEOS_DEVICE_PORT) root@$(THEOS_DEVICE_IP) "apt-get remove $(THEOS_PACKAGE_NAME)"
 
 #	@sudo apt-get remove $(THEOS_PACKAGE_NAME)
+
+SUBPROJECTS += Preferences
+include $(THEOS_MAKE_PATH)/aggregate.mk

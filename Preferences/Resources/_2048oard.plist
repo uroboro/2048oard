@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>Team Clue-- is very grateful to all of the following supporters for making the first ever Tweak Battle possible: 
+				
+manksgloob 
+@twodayslate 	
+Phillip Tennen 	
+@PresidentSteele 
+Anonymous 	
+rozersedge 	
+@wonkieinc 	
+Josh Gibson 	
+David Kaminsky 
+@redzrex 	
+Jacob Jones 	
+@dougsoaresnet 
+kgrubbs 	
+fewjative 	
+@mootjeuh 	
+Brandon Benenati 
+@BrianOverly</string>
+		</dict>
+	</array>
+	<key>title</key>
+	<string>2048oard</string>
+</dict>
+</plist>

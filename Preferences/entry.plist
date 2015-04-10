@@ -1,0 +1,10 @@
+{
+    entry = {
+	bundle = _2048oard;
+	cell = PSLinkCell;
+	detail = _2048oardListController;
+	icon = 2048oard.png;
+	isController = 1;
+	label = 2048oard;
+    };
+}
