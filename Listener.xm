@@ -262,10 +262,12 @@ static void loadActivator() {
 				[_LASharedActivator registerListener:self forName:bundleID];
 			}
 		}
+/*
 		[[NSNotificationCenter defaultCenter] addObserver:self
 			selector:@selector(springboardDidFinishLaunching:)
 			name:UIApplicationDidFinishLaunchingNotification
 			object:nil];
+*/
 	}
 	return self;
 }
