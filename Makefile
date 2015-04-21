@@ -15,9 +15,10 @@ after-install::
 	install.exec "killall -9 backboardd || killall -9 SpringBoard"
 
 remove:
-	@exec ssh -p $(THEOS_DEVICE_PORT) root@$(THEOS_DEVICE_IP) "apt-get remove $(THEOS_PACKAGE_NAME)"
-
+#	local
 #	@sudo apt-get remove $(THEOS_PACKAGE_NAME)
+#	remote
+	@exec ssh -p $(THEOS_DEVICE_PORT) root@$(THEOS_DEVICE_IP) "apt-get -y remove $(THEOS_PACKAGE_NAME)"
 
 SUBPROJECTS += Preferences
 include $(THEOS_MAKE_PATH)/aggregate.mk
