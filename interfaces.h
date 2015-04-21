@@ -30,11 +30,6 @@
 - (void)addNewIconToDesignatedLocation:(SBIcon *)icon animate:(BOOL)animate scrollToList:(BOOL)scrollToList saveIconState:(BOOL)saveIconState;
 @end
 
-@interface SBIconViewMap : NSObject
-+ (id)homescreenMap;
-- (id)mappedIconViewForIcon:(id)arg1;
-@end
-
 @interface SBIconModel : NSObject
 @property (nonatomic, assign) id delegate;
 - (void)loadAllIcons;
@@ -48,6 +43,13 @@
 - (id)initWithDefaultSize;
 - (void)updateLabel; // < iOS 7
 - (void)_updateLabel; // >= iOS 7
+@end
+
+@interface SBIconViewMap : NSObject
++ (id)homescreenMap;
+- (id)mappedIconViewForIcon:(id)arg1;
+- (id)iconViewForIcon:(id)arg1;
+- (void)_addIconView:(SBIconView *)iconView forIcon:(SBIcon *)icon;
 @end
 
 #endif /* INTERFACES_H */

@@ -1,3 +1,4 @@
+#include <dlfcn.h>
 #include <objc/runtime.h>
 #include <dispatch/dispatch.h>
 #import <libactivator/libactivator.h>
@@ -8,220 +9,11 @@
 #include "interfaces.h"
 #import "functions.h"
 
+#import "_2048oard.h"
+#import "SB2048IconView.h"
+#import "SB2048Icon.h"
+
 static NSString *bundleID = @"com.uroboro.2048oard";
-
-@interface _2048oard : NSObject <LAListener, UIGestureRecognizerDelegate> {
-}
-@property (nonatomic, retain) NSMutableArray *preview;
-
-// UI
-@property (nonatomic, assign) BOOL showing;
-@property (nonatomic, retain) UIWindow *overlay;
-@property (nonatomic, retain) UIWindow *board;
-@property (nonatomic, retain) UIView *gameOverScreen;
-
-@property (nonatomic, assign) id folderToOpen;
-
-+ (id)sharedInstance;
-
-- (void)show;
-- (void)dismiss;
-
-@end
-
-#if 1 /* SB2048Icon */
-
-@implementation NSObject (SB2048Icon)
-
-- (BOOL)is2048Icon {
-	return NO;
-}
-
-@end
-
-@interface SB2048Icon : SBIcon
-@property (nonatomic, assign) NSInteger value;
-- (UIImage *)imageFromView:(UIView *)view;
-- (UIView *)getIconView:(int)image;
-- (UIColor *)colorForValue:(NSInteger)value;
-@end
-
-%subclass SB2048Icon : SBIcon
-
-- (BOOL)is2048Icon {
-	return YES;
-}
-
-%new
-- (NSInteger)value {
-	NSNumber *n = objc_getAssociatedObject(self, _cmd);
-	return [n intValue];
-}
-
-%new
-- (void)setValue:(NSInteger)value {
-	objc_setAssociatedObject(self, @selector(value), @(value), OBJC_ASSOCIATION_ASSIGN);
-	[self reloadIconImagePurgingImageCache:0];
-}
-
-%new
-- (UIColor *)colorForValue:(NSInteger)value {
-	static NSMutableDictionary *notSoExplicitColors = [NSMutableDictionary new];
-	if (!notSoExplicitColors.count) {
-		CGFloat frequency = 1.0 / 16;
-		for (NSInteger i = 0; i < 16; i++) {
-				CGFloat r = 0.5 + 0.5 * cos(2 * M_PI * frequency * i + 0 * M_PI / 3);
-				CGFloat g = 0.5 + 0.5 * cos(2 * M_PI * frequency * i + 4 * M_PI / 3);
-				CGFloat b = 0.5 + 0.5 * cos(2 * M_PI * frequency * i + 2 * M_PI / 3);
-			[notSoExplicitColors setObject:[UIColor colorWithRed:r green:g blue:b alpha:1] forKey:@(2 << i)];
-		}
-	}
-
-	UIColor *c = [notSoExplicitColors objectForKey:@(value)];
-	return c ? c : [UIColor whiteColor];
-}
-
-%new
-- (UIImage *)imageFromView:(UIView *)view {
-	UIGraphicsBeginImageContextWithOptions(view.bounds.size, view.opaque, 0.0);
-	[view.layer renderInContext:UIGraphicsGetCurrentContext()];
-	UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
-	UIGraphicsEndImageContext();
-	return img;
-}
-
-%new
-- (UIView *)getIconView:(int)image {
-	CGSize s = [%c(SBIconView) defaultIconImageSize];
-
-	UIView *view = [[UIView alloc] initWithFrame:CGRectInset(CGRectMake(0, 0, s.width, s.height), 2, 2)];
-	view.opaque = NO;
-	view.backgroundColor = [self colorForValue:self.value];
-	view.layer.cornerRadius = 15;
-	view.layer.masksToBounds = YES;
-
-	UILabel *valueLabel = [[UILabel alloc] initWithFrame:CGRectInset(view.frame, 5, 5)];
-	valueLabel.backgroundColor = [UIColor clearColor];
-	valueLabel.textColor = [UIColor lightGrayColor];
-	valueLabel.text = [NSString stringWithFormat:@"%d", self.value];
-	valueLabel.font = [UIFont systemFontOfSize:valueLabel.frame.size.height];
-	valueLabel.adjustsFontSizeToFitWidth = YES;
-	valueLabel.textAlignment = NSTextAlignmentCenter;
-	valueLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
-	[view addSubview:valueLabel];
-	[valueLabel release];
-
-	return [view autorelease];
-}
-
-- (UIImage *)getIconImage:(int)image {
-	return [self imageFromView:[self getIconView:image]];
-}
-
-- (UIImage *)getGenericIconImage:(int)image {
-	return [self imageFromView:[self getIconView:image]];
-}
-
-- (UIImage *)generateIconImage:(int)image {
-	return [self imageFromView:[self getIconView:image]];
-}
-
-- (UIImage *)getStandardIconImageForLocation:(int)location {
-	return [self imageFromView:[self getIconView:location]];
-}
-
-- (NSString *)displayName {
-	return [NSString stringWithFormat:@"%d", self.value];
-}
-
-- (BOOL)canEllipsizeLabel {
-	return NO;
-}
-
-- (NSString *)folderFallbackTitle {
-	return @"2048";
-}
-
-- (NSString *)applicationBundleID {
-	return [@"2048-" stringByAppendingString:[self displayName]];
-}
-
-- (Class)iconViewClassForLocation:(int)location {
-	return %c(SB2048IconView);
-}
-
-#if 1 /* Figure out how to make the app use this class to prevent the SBUserInstalledApplicationIcon hook below */
-- (void)launch {
-	[[_2048oard sharedInstance] show];
-}
-
-- (void)launchFromViewSwitcher {
-	[[_2048oard sharedInstance] show];
-}
-
-- (void)launchFromLocation:(int)arg1 {
-	[[_2048oard sharedInstance] show];
-}
-#endif /* Figure out how to make the app use this class to prevent the SBUserInstalledApplicationIcon hook below */
-
-%end
-
-@interface SBUserInstalledApplicationIcon : SBIcon @end
-
-%hook SBUserInstalledApplicationIcon
-
--(void)launch {
-	if ([self.applicationBundleID isEqualToString:bundleID]) {
-		[[_2048oard sharedInstance] show];
-	} else {
-		%orig();
-	}
-}
-
-- (void)launchFromViewSwitcher {
-	if ([self.applicationBundleID isEqualToString:bundleID]) {
-		[[_2048oard sharedInstance] show];
-	} else {
-		%orig();
-	}
-}
-
-- (void)launchFromLocation:(int)location {
-	if ([self.applicationBundleID isEqualToString:bundleID]) {
-		[[_2048oard sharedInstance] show];
-	} else {
-		%orig();
-	}
-}
-
-%end
-
-#endif /* SB2048Icon */
-
-#if 1 /* SB2048IconView */
-
-@interface SB2048IconView : SBIconView
-@end
-
-%subclass SB2048IconView : SBIconView
-
-- (id)initWithDefaultSize {
-	if ((self = %orig())) {
-	}
-	return self;
-}
-
-- (NSString *)accessibilityValue {
-	return [self.icon displayName];
-}
-
-- (NSString *)accessibilityHint {
-	return [self.icon displayName];
-}
-
-%end
-
-#endif /* SB2048IconView */
 
 static LAActivator *_LASharedActivator;
 
@@ -631,10 +423,10 @@ static void loadActivator() {
 	// Called when we receive event
 	if (!_showing) {
 		[self show];
-		[event setHandled:YES];
 	} else {
 		[self dismiss];
 	}
+	[event setHandled:YES];
 }
 
 - (void)activator:(LAActivator *)activator abortEvent:(LAEvent *)event {
