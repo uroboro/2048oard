@@ -15,6 +15,30 @@
 
 static NSString *bundleID = @"com.uroboro.2048oard";
 
+%hook SBIconModel
+
+- (void)loadAllIcons {
+	%orig();
+	NSLog(@"X2048:: attempting to insert icons");
+	SB2048Icon *icon = [[%c(SB2048Icon) alloc] initWithLeafIdentifier:bundleID];
+	icon.value = 2048;
+	[self addIcon:icon];
+	[(SBIconController *)[%c(SBIconController) sharedInstance] addNewIconToDesignatedLocation:icon animate:YES scrollToList:NO saveIconState:YES]; 
+}
+
+%end
+
+@interface ISIconSupport : NSObject
++ (id)sharedInstance;
+- (BOOL)addExtension:(NSString *)extension;
+@end
+
+%ctor {
+	%init();
+	dlopen("/Library/MobileSubstrate/DynamicLibraries/IconSupport.dylib", RTLD_NOW);
+	[(ISIconSupport *)[objc_getClass("ISIconSupport") sharedInstance] addExtension:bundleID];
+}
+
 static LAActivator *_LASharedActivator;
 
 static void loadActivator() {
@@ -76,7 +100,7 @@ static void loadActivator() {
 // Notification callbacks
 
 - (void)springboardDidFinishLaunching:(NSNotification *)notification {
-	SB2048Icon *icon = [%c(SB2048Icon) new];
+	SB2048Icon *icon = [[%c(SB2048Icon) alloc] initWithLeafIdentifier:bundleID];
 	SBIconController *ic = [%c(SBIconController) sharedInstance];
 	[ic addNewIconToDesignatedLocation:icon animate:NO scrollToList:NO saveIconState:NO];
 	SB2048IconView *iconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
@@ -214,7 +238,7 @@ static void loadActivator() {
 		}
 
 		SB2048IconView *v = [[%c(SB2048IconView) alloc] initWithDefaultSize];
-		v.icon = [%c(SB2048Icon) new];
+		v.icon = [[%c(SB2048Icon) alloc] initWithLeafIdentifier:[bundleID stringByAppendingFormat:@"-%d", idx]];
 		((SB2048Icon *)v.icon).value = [obj intValue];
 		if (kCFCoreFoundationVersionNumber <= 800) { // < iOS 7
 			[v updateLabel];

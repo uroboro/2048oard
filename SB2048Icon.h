@@ -1,6 +1,7 @@
 #include "interfaces.h"
 
-@interface SB2048Icon : SBIcon
+@interface SB2048Icon : SBLeafIcon
+- (id)initWithLeafIdentifier:(NSString *)leafIdentifier;
 @property (nonatomic, assign) NSInteger value;
 - (UIImage *)imageFromView:(UIView *)view;
 - (UIImage *)imageFromString:(NSString *)text;

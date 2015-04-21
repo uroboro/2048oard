@@ -26,7 +26,24 @@ CGFloat fontSizeForStringWithFontConstrainedToSizeMinimumFontSize(NSString *stri
 	return fontSize;
 }
 
-%subclass SB2048Icon : SBIcon
+%subclass SB2048Icon : SBLeafIcon
+
+%group iOS_LT5
+
+%new
+- (id)initWithLeafIdentifier:(NSString *)leafIdentifier {
+	if ((self = [self init])) {
+		objc_setAssociatedObject(self, @selector(leafIdentifier), leafIdentifier, OBJC_ASSOCIATION_COPY_NONATOMIC);
+	}
+	return self;
+}
+
+%new
+- (NSString *)leafIdentifier {
+	return objc_getAssociatedObject(self, @selector(leafIdentifier));
+}
+
+%end
 
 %new
 - (NSInteger)value {
@@ -103,8 +120,6 @@ CGFloat fontSizeForStringWithFontConstrainedToSizeMinimumFontSize(NSString *stri
 	UIView *view = [[UIView alloc] initWithFrame:CGRectInset(CGRectMake(0, 0, s.width, s.height), 2, 2)];
 	view.opaque = NO;
 	view.backgroundColor = [self colorForValue:self.value];
-//	view.layer.cornerRadius = 15;
-//	view.layer.masksToBounds = YES;
 
 /*	UILabel *valueLabel = [[UILabel alloc] initWithFrame:CGRectInset(view.frame, 5, 5)];
 	valueLabel.backgroundColor = [UIColor clearColor];
@@ -171,3 +186,10 @@ CGFloat fontSizeForStringWithFontConstrainedToSizeMinimumFontSize(NSString *stri
 }
 
 %end
+
+%ctor {
+	%init();
+	if (kCFCoreFoundationVersionNumber < 700.0) {
+		%init(iOS_LT5);
+	}
+}

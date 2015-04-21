@@ -18,6 +18,12 @@
 - (void)launchFromViewSwitcher;
 @end
 
+@interface SBLeafIcon : SBIcon
+- (id)initWithLeafIdentifier:(NSString *)leafIdentifier;
+- (id)initWithLeafIdentifier:(NSString *)leafIdentifier applicationBundleID:(NSString *)bundleIdentifier;
+- (NSString *)leafIdentifier;
+@end
+
 @interface SBIconController : NSObject
 + (id)sharedInstance;
 - (id)model;
