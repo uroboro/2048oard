@@ -1,5 +1,5 @@
 #import "SB2048Icon.h"
-#import "_2048oard.h"
+#import "_2048oardController.h"
 
 CGFloat fontSizeForStringWithFontConstrainedToSizeMinimumFontSize(NSString *string, UIFont *font, CGSize size, CGFloat minimumFontSize) {
 	int m = NSLineBreakByWordWrapping; //UILineBreakModeWordWrap
@@ -152,11 +152,11 @@ CGFloat fontSizeForStringWithFontConstrainedToSizeMinimumFontSize(NSString *stri
 - (UIImage *)generateIconImage:(int)image {
 	return [self imageFromView:[self getIconView:image]];
 }
-
+/*
 - (UIImage *)getStandardIconImageForLocation:(int)location {
 	return [self imageFromView:[self getIconView:location]];
 }
-
+*/
 - (NSString *)displayName {
 	return [NSString stringWithFormat:@"%d", self.value];
 }
@@ -173,16 +173,20 @@ CGFloat fontSizeForStringWithFontConstrainedToSizeMinimumFontSize(NSString *stri
 	return [@"2048-" stringByAppendingString:[self displayName]];
 }
 
+- (BOOL)launchEnabled {
+	return YES;
+}
+
 - (void)launch {
-	[[%c(_2048oard) sharedInstance] show];
+//	[[%c(_2048oard) sharedInstance] show];
 }
 
 - (void)launchFromViewSwitcher {
-	[[%c(_2048oard) sharedInstance] show];
+//	[[%c(_2048oard) sharedInstance] show];
 }
 
 - (void)launchFromLocation:(int)location {
-	[[%c(_2048oard) sharedInstance] show];
+//	[[%c(_2048oard) sharedInstance] show];
 }
 
 %end
