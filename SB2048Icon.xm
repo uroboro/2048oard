@@ -1,6 +1,12 @@
 #import "SB2048Icon.h"
 #import "_2048oardController.h"
 
+typedef enum LIIconMask {
+	LIIconMaskRoundedGlossy = 1 << 0,
+	LIIconMaskRounded = 1 << 1,
+	LIIconMaskNone = 1 << 2
+} LIIconMask
+
 CGFloat fontSizeForStringWithFontConstrainedToSizeMinimumFontSize(NSString *string, UIFont *font, CGSize size, CGFloat minimumFontSize) {
 	int m = NSLineBreakByWordWrapping; //UILineBreakModeWordWrap
 	CGFloat fontSize = [font pointSize];
@@ -81,16 +87,15 @@ CGFloat fontSizeForStringWithFontConstrainedToSizeMinimumFontSize(NSString *stri
 	UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
 	UIGraphicsEndImageContext();
 
-	NSUInteger variant = 15;
+	NSUInteger variant = 15; // http://iphonedevwiki.net/index.php/MobileIcons.framework#Variants
 	CGFloat scale = 2.0;
-	NSUInteger flags = 1 << 1;
-	// 1 is glossy, rounded-corners
-	// 2 is !glossy, rounded-corners
-	// 4 is !glossy, !rounded-corners
+	LIIconMask mask = LIIconMaskRounded;
+	// flags = (kCFCoreFoundationVersionNumber > 800.0) would mean that gloss is applied to icons on iOS 6 or earlier
+	// if the animations aren't changed, this becomes a bit laggy in this project
 	void *MobileIcons = dlopen("/System/Library/PrivateFrameworks/MobileIcons.framework/MobileIcons", RTLD_NOW);
-	CGImageRef (*LICreateIconForImage)(CGImageRef image, NSUInteger variant, NSUInteger flags) = NULL;
-	LICreateIconForImage = (CGImageRef (*)(CGImageRef image, NSUInteger variant, NSUInteger flags))dlsym(MobileIcons, "LICreateIconForImage");
-	CGImageRef themedImage = LICreateIconForImage(img.CGImage, variant, flags);
+	CGImageRef (*LICreateIconForImage)(CGImageRef image, NSUInteger variant, NSUInteger mask) = NULL;
+	LICreateIconForImage = (CGImageRef (*)(CGImageRef image, NSUInteger variant, NSUInteger mask))dlsym(MobileIcons, "LICreateIconForImage");
+	CGImageRef themedImage = LICreateIconForImage(img.CGImage, variant, mask);
 	UIImage *i = [[[UIImage alloc] initWithCGImage:themedImage scale:scale orientation:UIImageOrientationUp] autorelease];
 	CGImageRelease(themedImage);
 	return i;
@@ -134,7 +139,7 @@ CGFloat fontSizeForStringWithFontConstrainedToSizeMinimumFontSize(NSString *stri
 */
 	UIImage *img = [self imageFromString:[NSString stringWithFormat:@"%d", self.value]];
 	UIImageView *textLabel = [[UIImageView alloc] initWithImage:img];
-	textLabel.center = view.center;
+//	textLabel.center = view.center;
 	[view addSubview:textLabel];
 	[textLabel release];
 
