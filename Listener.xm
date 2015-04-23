@@ -104,10 +104,11 @@ static void loadActivator() {
 - (NSString *)activator:(LAActivator *)activator requiresLocalizedDescriptionForListenerName:(NSString *)listenerName {
 	return @"Play 2048 on SB";
 }
-/* Group assignment filtering
+
+// Group assignment filtering
 - (NSArray *)activator:(LAActivator *)activator requiresExclusiveAssignmentGroupsForListenerName:(NSString *)listenerName {
 	return [NSArray array];
 }
-*/
+
 
 @end
