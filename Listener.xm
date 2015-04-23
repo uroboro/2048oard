@@ -47,12 +47,7 @@ static void loadActivator() {
 				[_LASharedActivator registerListener:self forName:bundleID];
 			}
 		}
-/*
-		[[NSNotificationCenter defaultCenter] addObserver:self
-			selector:@selector(springboardDidFinishLaunching:)
-			name:UIApplicationDidFinishLaunchingNotification
-			object:nil];
-*/
+
 	}
 	return self;
 }
@@ -66,21 +61,6 @@ static void loadActivator() {
 	[super dealloc];
 }
 
-// Notification callbacks
-/*
-- (void)springboardDidFinishLaunching:(NSNotification *)notification {
-	SB2048Icon *icon = [[%c(SB2048Icon) alloc] initWithLeafIdentifier:bundleID];
-	SBIconController *ic = [%c(SBIconController) sharedInstance];
-	[ic addNewIconToDesignatedLocation:icon animate:NO scrollToList:NO saveIconState:NO];
-	SB2048IconView *iconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
-	icon.value = 2048;
-	if (kCFCoreFoundationVersionNumber <= 800) { // < iOS 7
-		[iconView updateLabel];
-	} else {
-		[iconView _updateLabel];
-	}
-}
-*/
 // LAListener protocol methods
 
 - (void)activator:(LAActivator *)activator receiveEvent:(LAEvent *)event {

@@ -15,6 +15,32 @@
 
 static NSString *bundleID = @"com.uroboro.2048oard";
 
+#if 1 /* Icon insertion attempts */
+/*
+static id observer;
+%ctor {
+	observer = [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidFinishLaunchingNotification
+		object:nil queue:[NSOperationQueue mainQueue]
+		usingBlock:^(NSNotification *note) {
+			SB2048Icon *icon = [[%c(SB2048Icon) alloc] initWithLeafIdentifier:bundleID];
+			SBIconController *ic = [%c(SBIconController) sharedInstance];
+			[ic addNewIconToDesignatedLocation:icon animate:NO scrollToList:NO saveIconState:NO];
+			SB2048IconView *iconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
+			icon.value = 2048;
+			if (kCFCoreFoundationVersionNumber <= 800) { // < iOS 7
+				[iconView updateLabel];
+			} else {
+				[iconView _updateLabel];
+			}
+		}
+	];
+}
+
+%dtor {
+	[[NSNotificationCenter defaultCenter] removeObserver:observer];
+}
+*/
+
 %hook SBIconModel
 
 - (void)loadAllIcons {
@@ -39,6 +65,8 @@ static NSString *bundleID = @"com.uroboro.2048oard";
 	dlopen("/Library/MobileSubstrate/DynamicLibraries/IconSupport.dylib", RTLD_NOW);
 	[(ISIconSupport *)[objc_getClass("ISIconSupport") sharedInstance] addExtension:bundleID];
 }
+
+#endif /* Icon insertion attempts */
 
 @implementation _2048oardController
 
