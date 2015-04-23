@@ -70,19 +70,6 @@ static id observer;
 
 @implementation _2048oardController
 
-+ (id)sharedInstance {
-	static id sharedInstance = nil;
-	static dispatch_once_t token = 0;
-	dispatch_once(&token, ^{
-		sharedInstance = [self new];
-	});
-	return sharedInstance;
-}
-
-+ (void)load {
-	[self sharedInstance];
-}
-
 // Controller main methods
 
 - (void)show {

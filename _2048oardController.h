@@ -12,8 +12,6 @@
 
 @property (nonatomic, assign) id folderToOpen;
 
-+ (id)sharedInstance;
-
 - (void)show;
 - (void)dismiss;
 

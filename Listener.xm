@@ -48,6 +48,7 @@ static void loadActivator() {
 			}
 		}
 
+		_boardController = [_2048oardController new];
 	}
 	return self;
 }
@@ -58,6 +59,8 @@ static void loadActivator() {
 			[_LASharedActivator unregisterListenerWithName:bundleID];
 		}
 	}
+	[_boardController release];
+	_boardController = nil;
 	[super dealloc];
 }
 
@@ -65,11 +68,10 @@ static void loadActivator() {
 
 - (void)activator:(LAActivator *)activator receiveEvent:(LAEvent *)event {
 	// Called when we receive event
-	_2048oardController *b = [_2048oardController sharedInstance];
-	if (!b.isShowing) {
-		[[_2048oardController sharedInstance] show];
+	if (!_boardController.isShowing) {
+		[_boardController show];
 	} else {
-		[[_2048oardController sharedInstance] dismiss];
+		[_boardController dismiss];
 	}
 	[event setHandled:YES];
 }
@@ -77,18 +79,18 @@ static void loadActivator() {
 - (void)activator:(LAActivator *)activator abortEvent:(LAEvent *)event {
 	// Called when event is escalated to a higher event
 	// (short-hold sleep button becomes long-hold shutdown menu, etc)
-	[[_2048oardController sharedInstance] dismiss];
+	[_boardController dismiss];
 }
 
 - (void)activator:(LAActivator *)activator otherListenerDidHandleEvent:(LAEvent *)event {
 	// Called when some other listener received an event; we should cleanup
-	[[_2048oardController sharedInstance] dismiss];
+	[_boardController dismiss];
 }
 
 - (void)activator:(LAActivator *)activator receiveDeactivateEvent:(LAEvent *)event {
 	// Called when the home button is pressed.
 	// If (and only if) we are showing UI, we should dismiss it and call setHandled:
-	[[_2048oardController sharedInstance] dismiss];
+	[_boardController dismiss];
 }
 
 // Metadata

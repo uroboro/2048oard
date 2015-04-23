@@ -4,4 +4,5 @@
 
 @interface _2048oardListener : NSObject <LAListener> {
 }
+@property (nonatomic, assign) _2048oardController *boardController;
 @end
