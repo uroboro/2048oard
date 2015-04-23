@@ -7,7 +7,57 @@ typedef enum LIIconMask {
 	LIIconMaskNone = 1 << 2
 } LIIconMask
 
-CGFloat fontSizeForStringWithFontConstrainedToSizeMinimumFontSize(NSString *string, UIFont *font, CGSize size, CGFloat minimumFontSize) {
+static UIColor *colorForValue(NSInteger value) {
+	static NSMutableDictionary *notSoExplicitColors = [NSMutableDictionary new];
+	if (!notSoExplicitColors.count) {
+		CGFloat frequency = 1.0 / 16;
+		for (NSInteger i = 0; i < 16; i++) {
+				CGFloat r = 0.5 + 0.5 * cos(2 * M_PI * frequency * i + 0 * M_PI / 3);
+				CGFloat g = 0.5 + 0.5 * cos(2 * M_PI * frequency * i + 4 * M_PI / 3);
+				CGFloat b = 0.5 + 0.5 * cos(2 * M_PI * frequency * i + 2 * M_PI / 3);
+			[notSoExplicitColors setObject:[UIColor colorWithRed:r green:g blue:b alpha:1] forKey:@(2 << i)];
+		}
+	}
+
+	UIColor *c = [notSoExplicitColors objectForKey:@(value)];
+	return c ? c : [UIColor whiteColor];
+}
+
+static UIImage *imageFromView(UIView *view) {
+	UIGraphicsBeginImageContextWithOptions(view.bounds.size, view.opaque, 0.0);
+	[view.layer renderInContext:UIGraphicsGetCurrentContext()];
+	UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
+	UIGraphicsEndImageContext();
+	return img;
+}
+
+static UIImage *iconImageFromImage(UIImage *image, CGFloat scale, NSUInteger variant, NSUInteger mask) {
+	static void *MobileIcons = NULL;
+	static CGImageRef (*LICreateIconForImage)(CGImageRef image, NSUInteger variant, NSUInteger mask) = NULL;
+	if (!MobileIcons) {
+		MobileIcons = dlopen("/System/Library/PrivateFrameworks/MobileIcons.framework/MobileIcons", RTLD_NOW);
+	}
+	if (!LICreateIconForImage) {
+		LICreateIconForImage = (CGImageRef (*)(CGImageRef image, NSUInteger variant, NSUInteger mask))dlsym(MobileIcons, "LICreateIconForImage");
+	}
+	CGImageRef themedImage = LICreateIconForImage(image.CGImage, variant, mask);
+	UIImage *i = [[[UIImage alloc] initWithCGImage:themedImage scale:scale orientation:UIImageOrientationUp] autorelease];
+	CGImageRelease(themedImage);
+	return i;
+}
+
+static UIImage *iconImageFromView(UIView *view) {
+	UIImage *img = imageFromView(view);
+
+	CGFloat scale = 2.0;
+	NSUInteger variant = 15; // http://iphonedevwiki.net/index.php/MobileIcons.framework#Variants
+	LIIconMask mask = LIIconMaskRounded;
+	// flags = (kCFCoreFoundationVersionNumber > 800.0) would mean that gloss is applied to icons on iOS 6 or earlier
+	// if the animations aren't changed, this becomes a bit laggy in this project
+	return iconImageFromImage(img, scale, variant, mask);
+}
+
+static CGFloat fontSizeForStringWithFontConstrainedToSizeMinimumFontSize(NSString *string, UIFont *font, CGSize size, CGFloat minimumFontSize) {
 	int m = NSLineBreakByWordWrapping; //UILineBreakModeWordWrap
 	CGFloat fontSize = [font pointSize];
 	CGFloat height = [string sizeWithFont:font constrainedToSize:CGSizeMake(size.width,FLT_MAX) lineBreakMode:m].height;
@@ -30,6 +80,23 @@ CGFloat fontSizeForStringWithFontConstrainedToSizeMinimumFontSize(NSString *stri
 		}
 	}
 	return fontSize;
+}
+
+static UIImage *imageFromString(NSString *text) {
+	CGSize s = [%c(SBIconView) defaultIconImageSize];
+	s = CGRectInset(s, 5, 5);
+	CGFloat fontSize = fontSizeForStringWithFontConstrainedToSizeMinimumFontSize(text, [UIFont systemFontOfSize:s.height], s, 10);
+	s.height = fontSize;
+	CGPoint p = CGPointMake(0, 0);
+	UIGraphicsBeginImageContextWithOptions(s, 0, 0.0);
+	CGContextRef context = UIGraphicsGetCurrentContext();
+	CGContextSetFillColorWithColor(context, [[UIColor lightGrayColor] CGColor]);
+	CGContextSetStrokeColorWithColor(context, [[UIColor darkGrayColor] CGColor]);
+	CGContextSetTextDrawingMode(context, kCGTextFillStroke);
+	[text drawAtPoint:p withFont:[UIFont systemFontOfSize:fontSize]];
+	UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
+	UIGraphicsEndImageContext();
+	return img;
 }
 
 %subclass SB2048Icon : SBLeafIcon
@@ -64,67 +131,12 @@ CGFloat fontSizeForStringWithFontConstrainedToSizeMinimumFontSize(NSString *stri
 }
 
 %new
-- (UIColor *)colorForValue:(NSInteger)value {
-	static NSMutableDictionary *notSoExplicitColors = [NSMutableDictionary new];
-	if (!notSoExplicitColors.count) {
-		CGFloat frequency = 1.0 / 16;
-		for (NSInteger i = 0; i < 16; i++) {
-				CGFloat r = 0.5 + 0.5 * cos(2 * M_PI * frequency * i + 0 * M_PI / 3);
-				CGFloat g = 0.5 + 0.5 * cos(2 * M_PI * frequency * i + 4 * M_PI / 3);
-				CGFloat b = 0.5 + 0.5 * cos(2 * M_PI * frequency * i + 2 * M_PI / 3);
-			[notSoExplicitColors setObject:[UIColor colorWithRed:r green:g blue:b alpha:1] forKey:@(2 << i)];
-		}
-	}
-
-	UIColor *c = [notSoExplicitColors objectForKey:@(value)];
-	return c ? c : [UIColor whiteColor];
-}
-
-%new
-- (UIImage *)imageFromView:(UIView *)view {
-	UIGraphicsBeginImageContextWithOptions(view.bounds.size, view.opaque, 0.0);
-	[view.layer renderInContext:UIGraphicsGetCurrentContext()];
-	UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
-	UIGraphicsEndImageContext();
-
-	NSUInteger variant = 15; // http://iphonedevwiki.net/index.php/MobileIcons.framework#Variants
-	CGFloat scale = 2.0;
-	LIIconMask mask = LIIconMaskRounded;
-	// flags = (kCFCoreFoundationVersionNumber > 800.0) would mean that gloss is applied to icons on iOS 6 or earlier
-	// if the animations aren't changed, this becomes a bit laggy in this project
-	void *MobileIcons = dlopen("/System/Library/PrivateFrameworks/MobileIcons.framework/MobileIcons", RTLD_NOW);
-	CGImageRef (*LICreateIconForImage)(CGImageRef image, NSUInteger variant, NSUInteger mask) = NULL;
-	LICreateIconForImage = (CGImageRef (*)(CGImageRef image, NSUInteger variant, NSUInteger mask))dlsym(MobileIcons, "LICreateIconForImage");
-	CGImageRef themedImage = LICreateIconForImage(img.CGImage, variant, mask);
-	UIImage *i = [[[UIImage alloc] initWithCGImage:themedImage scale:scale orientation:UIImageOrientationUp] autorelease];
-	CGImageRelease(themedImage);
-	return i;
-}
-
-%new
-- (UIImage *)imageFromString:(NSString *)text {
-	CGSize s = [%c(SBIconView) defaultIconImageSize];
-	CGFloat fontSize = fontSizeForStringWithFontConstrainedToSizeMinimumFontSize(text, [UIFont systemFontOfSize:s.height], s, 10);
-	CGPoint p = CGPointMake(0, 0);
-	s.height = fontSize;
-	UIGraphicsBeginImageContextWithOptions(s, 0, 0.0);
-	CGContextRef context = UIGraphicsGetCurrentContext();
-	CGContextSetFillColorWithColor(context, [[UIColor lightGrayColor] CGColor]);
-	CGContextSetStrokeColorWithColor(context, [[UIColor darkGrayColor] CGColor]);
-	CGContextSetTextDrawingMode(context, kCGTextFillStroke);
-	[text drawAtPoint:p withFont:[UIFont systemFontOfSize:fontSize]];
-	UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
-	UIGraphicsEndImageContext();
-	return img;
-}
-
-%new
 - (UIView *)getIconView:(int)image {
 	CGSize s = [%c(SBIconView) defaultIconImageSize];
 
-	UIView *view = [[UIView alloc] initWithFrame:CGRectInset(CGRectMake(0, 0, s.width, s.height), 2, 2)];
+	UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, s.width, s.height)];
 	view.opaque = NO;
-	view.backgroundColor = [self colorForValue:self.value];
+	view.backgroundColor = colorForValue(self.value);
 
 /*	UILabel *valueLabel = [[UILabel alloc] initWithFrame:CGRectInset(view.frame, 5, 5)];
 	valueLabel.backgroundColor = [UIColor clearColor];
@@ -147,21 +159,17 @@ CGFloat fontSizeForStringWithFontConstrainedToSizeMinimumFontSize(NSString *stri
 }
 
 - (UIImage *)getIconImage:(int)image {
-	return [self imageFromView:[self getIconView:image]];
+	return iconImageFromView([self getIconView:image]);
 }
 
 - (UIImage *)getGenericIconImage:(int)image {
-	return [self imageFromView:[self getIconView:image]];
+	return iconImageFromView([self getIconView:image]);
 }
 
 - (UIImage *)generateIconImage:(int)image {
-	return [self imageFromView:[self getIconView:image]];
+	return iconImageFromView([self getIconView:image]);
 }
-/*
-- (UIImage *)getStandardIconImageForLocation:(int)location {
-	return [self imageFromView:[self getIconView:location]];
-}
-*/
+
 - (NSString *)displayName {
 	return [NSString stringWithFormat:@"%d", self.value];
 }
@@ -175,7 +183,7 @@ CGFloat fontSizeForStringWithFontConstrainedToSizeMinimumFontSize(NSString *stri
 }
 
 - (NSString *)applicationBundleID {
-	return [@"2048-" stringByAppendingString:[self displayName]];
+	return [NSString stringWithFormat:@"2048-%d", self.value];
 }
 
 - (BOOL)launchEnabled {
