@@ -1,3 +1,5 @@
+#include <dlfcn.h>
+#import <CoreGraphics/CoreGraphics.h>
 #import "SB2048Icon.h"
 #import "_2048oardController.h"
 
@@ -5,7 +7,7 @@ typedef enum LIIconMask {
 	LIIconMaskRoundedGlossy = 1 << 0,
 	LIIconMaskRounded = 1 << 1,
 	LIIconMaskNone = 1 << 2
-} LIIconMask
+} LIIconMask;
 
 static UIColor *colorForValue(NSInteger value) {
 	static NSMutableDictionary *notSoExplicitColors = [NSMutableDictionary new];
@@ -84,7 +86,7 @@ static CGFloat fontSizeForStringWithFontConstrainedToSizeMinimumFontSize(NSStrin
 
 static UIImage *imageFromString(NSString *text) {
 	CGSize s = [%c(SBIconView) defaultIconImageSize];
-	s = CGRectInset(s, 5, 5);
+	s = CGSizeMake(s.width - 5, s.height - 5);
 	CGFloat fontSize = fontSizeForStringWithFontConstrainedToSizeMinimumFontSize(text, [UIFont systemFontOfSize:s.height], s, 10);
 	s.height = fontSize;
 	CGPoint p = CGPointMake(0, 0);
@@ -149,7 +151,7 @@ static UIImage *imageFromString(NSString *text) {
 	[view addSubview:valueLabel];
 	[valueLabel release];
 */
-	UIImage *img = [self imageFromString:[NSString stringWithFormat:@"%d", self.value]];
+	UIImage *img = imageFromString([NSString stringWithFormat:@"%d", self.value]);
 	UIImageView *textLabel = [[UIImageView alloc] initWithImage:img];
 //	textLabel.center = view.center;
 	[view addSubview:textLabel];
