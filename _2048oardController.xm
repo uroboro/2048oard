@@ -68,6 +68,18 @@ static id observer;
 
 #endif /* Icon insertion attempts */
 
+@interface _2048oardController ()
+@property (nonatomic, retain) NSMutableArray *preview;
+
+// UI
+@property (nonatomic, readwrite, getter=isShowing) BOOL showing;
+@property (nonatomic, retain) UIWindow *overlay;
+@property (nonatomic, retain) UIWindow *board;
+@property (nonatomic, retain) UIView *gameOverScreen;
+
+@property (nonatomic, assign) id folderToOpen;
+@end
+
 @implementation _2048oardController
 
 // Controller main methods
